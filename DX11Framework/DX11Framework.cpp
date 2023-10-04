@@ -152,6 +152,16 @@ HRESULT DX11Framework::CreateSwapChainAndFrameBuffer()
 
     hr = _device->CreateRenderTargetView(frameBuffer, &framebufferDesc, &_frameBufferView);
 
+
+    D3D11_TEXTURE2D_DESC depthBufferDesc = {};
+    frameBuffer->GetDesc(&depthBufferDesc);
+
+    depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    _device->CreateTexture2D(&depthBufferDesc, nullptr, &_depthStencilBuffer);
+    _device->CreateDepthStencilView(_depthStencilBuffer, nullptr, &_depthStencilView);
+
     frameBuffer->Release();
 
 
@@ -353,6 +363,8 @@ DX11Framework::~DX11Framework()
     if(_dxgiDevice)_dxgiDevice->Release();
     if(_dxgiFactory)_dxgiFactory->Release();
     if(_frameBufferView)_frameBufferView->Release();
+    if (_depthStencilBuffer)_depthStencilBuffer->Release();
+    if (_depthStencilView)_depthStencilView->Release(); 
     if(_swapChain)_swapChain->Release();
 
     if (_fillState)_fillState->Release();
@@ -378,12 +390,18 @@ void DX11Framework::Update()
     static float simpleCount = 0.0f;
     simpleCount += deltaTime;
 
-    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationX(simpleCount) * XMMatrixRotationY(simpleCount));
+    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount));
+    XMStoreFloat4x4(&_World2, XMMatrixIdentity() * XMMatrixRotationY(simpleCount)* XMMatrixTranslation(5, 0, 0) * XMLoadFloat4x4(&_World));
+    XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
+
+    
 
     if (GetAsyncKeyState(VK_F1) & 0x0001)
     {
         _immediateContext->RSSetState(_fillState);
     }
+
+
 
 }
 
@@ -391,8 +409,9 @@ void DX11Framework::Draw()
 {    
     //Present unbinds render target, so rebind and clear at start of each frame
     float backgroundColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };  
-    _immediateContext->OMSetRenderTargets(1, &_frameBufferView, 0);
+    _immediateContext->OMSetRenderTargets(1, &_frameBufferView, _depthStencilView);
     _immediateContext->ClearRenderTargetView(_frameBufferView, backgroundColor);
+    _immediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0.0f);
    
     //Store this frames data in constant buffer struct
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World));
@@ -413,6 +432,24 @@ void DX11Framework::Draw()
 
     _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
     _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
+
+    _immediateContext->DrawIndexed(36, 0, 0);
+
+
+
+    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
+    //Write constant buffer data onto GPU
+    _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+    memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
+    _immediateContext->Unmap(_constantBuffer, 0);
+
+    _immediateContext->DrawIndexed(36, 0, 0);
+
+    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World3));
+    //Write constant buffer data onto GPU
+    _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+    memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
+    _immediateContext->Unmap(_constantBuffer, 0);
 
     _immediateContext->DrawIndexed(36, 0, 0);
 
