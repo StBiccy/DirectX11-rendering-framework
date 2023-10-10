@@ -334,6 +334,24 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
     hr = _device->CreateBuffer(&PyramidBufferDesc, &pyramidIndexData, &_pyramidIndexBuffer);
     if (FAILED(hr)) return hr;
 
+    //////
+
+    SimpleVertex LineList[] =
+    {
+        { XMFLOAT3(0,3,0), XMFLOAT4(1,1,1,1)},
+        { XMFLOAT3(0,5,0), XMFLOAT4(1,1,1,1)},
+    };
+
+    D3D11_BUFFER_DESC lineVertexBufferDesc = {};
+    lineVertexBufferDesc.ByteWidth = sizeof(LineList);
+    lineVertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    lineVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA lineVertexData = { LineList };
+
+    hr = _device->CreateBuffer(&lineVertexBufferDesc, &lineVertexData, &_lineVertexBuffer);
+    if (FAILED(hr)) return hr;
+
     return S_OK;
 }
 
@@ -442,7 +460,7 @@ void DX11Framework::Update()
     XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount));
     XMStoreFloat4x4(&_World2, XMMatrixIdentity() * XMMatrixRotationY(simpleCount)* XMMatrixTranslation(5, 0, 0) * XMLoadFloat4x4(&_World));
     XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
-
+    XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
     
 
     if (GetAsyncKeyState(VK_F1) & 0x0001)
@@ -456,6 +474,8 @@ void DX11Framework::Update()
 
 void DX11Framework::Draw()
 {    
+    _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     //Present unbinds render target, so rebind and clear at start of each frame
     float backgroundColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };  
     _immediateContext->OMSetRenderTargets(1, &_frameBufferView, _depthStencilView);
@@ -509,6 +529,16 @@ void DX11Framework::Draw()
 
     _immediateContext->DrawIndexed(36, 0, 0);
 
+    //////
+    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World4));
+    _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+    memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
+    _immediateContext->Unmap(_constantBuffer, 0);
+
+
+    _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    _immediateContext->IASetVertexBuffers(0, 1, &_lineVertexBuffer, &stride, &offset);
+    _immediateContext->Draw(2, 0);
 
 
     //Present Backbuffer to screen
