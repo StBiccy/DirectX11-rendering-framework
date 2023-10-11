@@ -20,6 +20,7 @@ struct ConstantBuffer
 	XMMATRIX Projection;
 	XMMATRIX View;
 	XMMATRIX World;
+	float count;
 };
 
 class DX11Framework

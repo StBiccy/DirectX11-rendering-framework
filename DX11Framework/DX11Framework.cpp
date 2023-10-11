@@ -468,7 +468,7 @@ void DX11Framework::Update()
         _immediateContext->RSSetState(_fillState);
     }
 
-
+    _cbData.count = simpleCount;
 
 }
 
