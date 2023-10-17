@@ -199,7 +199,7 @@ HRESULT DX11Framework::InitShadersAndInputLayout()
     D3D11_INPUT_ELEMENT_DESC inputElementDesc[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA,   0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
     };
 
     hr = _device->CreateInputLayout(inputElementDesc, ARRAYSIZE(inputElementDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &_inputLayout);
@@ -232,15 +232,15 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
     SimpleVertex CubeVertexData[] = 
     {
         //Position                     //Color             
-        { XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
-        { XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT4(0.0f,  1.0f, 0.0f,  0.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
-        { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT4(1.0f,  1.0f, 1.0f,  0.0f)},
+        { XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT3(-1.00f,  1.00f, -1)},
+        { XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT3(1.00f,  1.00f, -1)},
+        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT3(-1.00f, -1.00f, -1)},
+        { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT3(1.00f, -1.00f, -1)},
 
-        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
-        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT4(0.0f,  1.0f, 0.0f,  0.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
-        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT4(1.0f,  1.0f, 1.0f,  0.0f)},
+        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1)},
+        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1)},
+        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1)},
+        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1)},
     };
 
     D3D11_BUFFER_DESC cubeVertexBufferDesc = {};
@@ -289,30 +289,30 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    SimpleVertex PyramidVertexData[] =
-    {
-        //Position                     //Color             
-        { XMFLOAT3(1.00f,  -1.00f, -1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
-        { XMFLOAT3(1.00f,  -1.00f, 1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
+    //SimpleVertex PyramidVertexData[] =
+    //{
+    //    //Position                     //Color             
+    //    { XMFLOAT3(1.00f,  -1.00f, -1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
+    //    { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
+    //    { XMFLOAT3(1.00f,  -1.00f, 1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
+    //    { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
 
-        { XMFLOAT3(0.00f, 1.00f, 0), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f)}
-    };
+    //    { XMFLOAT3(0.00f, 1.00f, 0), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f)}
+    //};
 
-    D3D11_BUFFER_DESC pyramidVertexBufferDesc = {};
-    pyramidVertexBufferDesc.ByteWidth = sizeof(PyramidVertexData);
-    pyramidVertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    pyramidVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    //D3D11_BUFFER_DESC pyramidVertexBufferDesc = {};
+    //pyramidVertexBufferDesc.ByteWidth = sizeof(PyramidVertexData);
+    //pyramidVertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    //pyramidVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-    D3D11_SUBRESOURCE_DATA pyramidVertexData = { PyramidVertexData };
+    //D3D11_SUBRESOURCE_DATA pyramidVertexData = { PyramidVertexData };
 
-    hr = _device->CreateBuffer(&pyramidVertexBufferDesc, &pyramidVertexData, &_pyramidVertexBuffer);
-    if (FAILED(hr)) return hr;
+    //hr = _device->CreateBuffer(&pyramidVertexBufferDesc, &pyramidVertexData, &_pyramidVertexBuffer);
+    //if (FAILED(hr)) return hr;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    WORD PyramidIndexData[] =
+    /*WORD PyramidIndexData[] =
     {
         //Indices
         2, 1, 0,
@@ -332,25 +332,25 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
     D3D11_SUBRESOURCE_DATA pyramidIndexData = { PyramidIndexData };
 
     hr = _device->CreateBuffer(&PyramidBufferDesc, &pyramidIndexData, &_pyramidIndexBuffer);
-    if (FAILED(hr)) return hr;
+    if (FAILED(hr)) return hr;*/
 
     //////
 
-    SimpleVertex LineList[] =
+ /*   SimpleVertex LineList[] =
     {
         { XMFLOAT3(0,3,0), XMFLOAT4(1,1,1,1)},
         { XMFLOAT3(0,5,0), XMFLOAT4(1,1,1,1)},
-    };
+    };*/
 
-    D3D11_BUFFER_DESC lineVertexBufferDesc = {};
-    lineVertexBufferDesc.ByteWidth = sizeof(LineList);
-    lineVertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    lineVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    //D3D11_BUFFER_DESC lineVertexBufferDesc = {};
+    //lineVertexBufferDesc.ByteWidth = sizeof(LineList);
+    //lineVertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    //lineVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-    D3D11_SUBRESOURCE_DATA lineVertexData = { LineList };
+    //D3D11_SUBRESOURCE_DATA lineVertexData = { LineList };
 
-    hr = _device->CreateBuffer(&lineVertexBufferDesc, &lineVertexData, &_lineVertexBuffer);
-    if (FAILED(hr)) return hr;
+    //hr = _device->CreateBuffer(&lineVertexBufferDesc, &lineVertexData, &_lineVertexBuffer);
+    //if (FAILED(hr)) return hr;
 
     return S_OK;
 }
@@ -405,6 +405,15 @@ HRESULT DX11Framework::InitPipelineVariables()
 
 HRESULT DX11Framework::InitRunTimeData()
 {
+    //Light
+    _diffuseLight = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+    _diffuseMaterial = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    _lightDir = XMFLOAT3(0, 0.5f, 0.5f);
+
+    _cbData.DiffuseLight = _diffuseLight;
+    _cbData.DiffuseMaterial = _diffuseMaterial;
+    _cbData.LightDir = _lightDir;
+    
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
 
@@ -474,6 +483,9 @@ void DX11Framework::Update()
 
 void DX11Framework::Draw()
 {    
+    
+
+
     _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     //Present unbinds render target, so rebind and clear at start of each frame
@@ -520,25 +532,25 @@ void DX11Framework::Draw()
 
     ///////
 
-    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
+    /*_cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
     //Write constant buffer data onto GPU
     _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
     _immediateContext->Unmap(_constantBuffer, 0);
 
 
-    _immediateContext->DrawIndexed(36, 0, 0);
+    _immediateContext->DrawIndexed(36, 0, 0);*/
 
     //////
-    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World4));
-    _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
-    memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
-    _immediateContext->Unmap(_constantBuffer, 0);
+    //_cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World4));
+    //_immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+    //memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
+    //_immediateContext->Unmap(_constantBuffer, 0);
 
 
-    _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    _immediateContext->IASetVertexBuffers(0, 1, &_lineVertexBuffer, &stride, &offset);
-    _immediateContext->Draw(2, 0);
+    //_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    //_immediateContext->IASetVertexBuffers(0, 1, &_lineVertexBuffer, &stride, &offset);
+    //_immediateContext->Draw(2, 0);
 
 
     //Present Backbuffer to screen

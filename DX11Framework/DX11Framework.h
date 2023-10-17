@@ -12,7 +12,7 @@ using namespace DirectX;
 struct SimpleVertex
 {
 	XMFLOAT3 Position;
-	XMFLOAT4 Color;
+	XMFLOAT3 Normal;
 };
 
 struct ConstantBuffer
@@ -20,6 +20,9 @@ struct ConstantBuffer
 	XMMATRIX Projection;
 	XMMATRIX View;
 	XMMATRIX World;
+	XMFLOAT4 DiffuseLight;
+	XMFLOAT4 DiffuseMaterial;
+	XMFLOAT3 LightDir;
 	float count;
 };
 
@@ -62,6 +65,10 @@ class DX11Framework
 
 	ID3D11Texture2D* _depthStencilBuffer;
 	ID3D11DepthStencilView* _depthStencilView;
+
+	XMFLOAT4 _diffuseLight;
+	XMFLOAT4 _diffuseMaterial;
+	XMFLOAT3 _lightDir;
 
 public:
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
