@@ -408,12 +408,13 @@ HRESULT DX11Framework::InitRunTimeData()
     //Light
     _diffuseLight = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
     _diffuseMaterial = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    _lightDir = XMFLOAT3(0, 0.5f, 0.5f);
+    _lightDir = XMFLOAT3(0, -0.5f, 0.5f);
 
-    _cbData.DiffuseLight = _diffuseLight;
-    _cbData.DiffuseMaterial = _diffuseMaterial;
-    _cbData.LightDir = _lightDir;
-    
+    _ambiantLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+    _ambiantMaterial = XMFLOAT4(1.0f, 0.1f, 0.1f, 1.0f);
+
+    _specPower = (10.0f);
+
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
 
@@ -466,7 +467,7 @@ void DX11Framework::Update()
     static float simpleCount = 0.0f;
     simpleCount += deltaTime;
 
-    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount));
+    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(0,0,4));
     XMStoreFloat4x4(&_World2, XMMatrixIdentity() * XMMatrixRotationY(simpleCount)* XMMatrixTranslation(5, 0, 0) * XMLoadFloat4x4(&_World));
     XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
     XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
@@ -483,8 +484,12 @@ void DX11Framework::Update()
 
 void DX11Framework::Draw()
 {    
-    
-
+    _cbData.DiffuseLight = _diffuseLight;
+    _cbData.DiffuseMaterial = _diffuseMaterial;
+    _cbData.LightDir = _lightDir;
+    _cbData.AmbiantLight = _ambiantLight;
+    _cbData.AmbiantMaterial = _ambiantMaterial;
+    _cbData.specPower = _specPower;
 
     _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -508,8 +513,8 @@ void DX11Framework::Draw()
     //Set object variables and draw
     UINT stride = {sizeof(SimpleVertex)};
     UINT offset =  0 ;
-    _immediateContext->IASetVertexBuffers(0, 1, &_pyramidVertexBuffer, &stride, &offset);
-    _immediateContext->IASetIndexBuffer(_pyramidIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _immediateContext->IASetVertexBuffers(0, 1, &_cubeVertexBuffer, &stride, &offset);
+    _immediateContext->IASetIndexBuffer(_cubeIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
     _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
     _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
@@ -532,14 +537,14 @@ void DX11Framework::Draw()
 
     ///////
 
-    /*_cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
+    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
     //Write constant buffer data onto GPU
     _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
     _immediateContext->Unmap(_constantBuffer, 0);
 
 
-    _immediateContext->DrawIndexed(36, 0, 0);*/
+    _immediateContext->DrawIndexed(36, 0, 0);
 
     //////
     //_cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World4));

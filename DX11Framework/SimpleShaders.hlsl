@@ -3,8 +3,11 @@ cbuffer ConstantBuffer : register(b0)
     float4x4 Projection;
     float4x4 View;
     float4x4 World;
+    float4 AmbiantLight;
+    float4 AmbiantMaterial;
     float4 DiffuseLight;
     float4 DiffuseMaterial;
+    float specPower;
     float3 LightDir;
 	float count;
 }
@@ -13,15 +16,16 @@ struct VS_Out
 {
     float4 position : SV_POSITION;
     float3 posW : POSITION0;
-    float3 normalW : NORMAL;
-    float4 diffuseAmount;
+    float3 normal : NORMAL;
+    float4 color : COLOR;
+    float3 worldNormalPosition : POSTITIONWN;
 };
 
 VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL)
 {   
     VS_Out output = (VS_Out)0;
 
-    Position.y += sin(count);
+    //Position.y += sin(count);
     
     float4 Pos4 = float4(Position, 1.0f);
     output.position = mul(Pos4, World);
@@ -29,16 +33,22 @@ VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL)
     output.position = mul(output.position, View);
     output.position = mul(output.position, Projection);
     
-    float3 normDir = Normal, World;
+    output.worldNormalPosition = mul(float4(Normal, 0), World);;
     
-    output.normalW = normalize(normDir);
-    float d = dot(LightDir, output.normalW);
-    output.diffuseAmount = cos()
     
     return output;
 }
 
 float4 PS_main(VS_Out input) : SV_TARGET
 {
-    return float4(0,0,0,0);
+    float3 normalW = normalize(input.worldNormalPosition);
+    float DiffuseAmount = saturate(dot(normalW, -normalize(LightDir)));
+    float4 Ambiant = AmbiantLight * AmbiantMaterial;
+    
+    float4 diffuse = DiffuseAmount * (DiffuseMaterial * DiffuseLight);
+    
+    Float specIntesity = dot(reflect(LightDir, normalW), (View - World));
+
+    
+    return Ambiant + diffuse;
 }

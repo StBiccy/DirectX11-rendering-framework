@@ -20,8 +20,11 @@ struct ConstantBuffer
 	XMMATRIX Projection;
 	XMMATRIX View;
 	XMMATRIX World;
+	XMFLOAT4 AmbiantLight;
+	XMFLOAT4 AmbiantMaterial;
 	XMFLOAT4 DiffuseLight;
 	XMFLOAT4 DiffuseMaterial;
+	float specPower;
 	XMFLOAT3 LightDir;
 	float count;
 };
@@ -69,6 +72,11 @@ class DX11Framework
 	XMFLOAT4 _diffuseLight;
 	XMFLOAT4 _diffuseMaterial;
 	XMFLOAT3 _lightDir;
+
+	XMFLOAT4 _ambiantLight;
+	XMFLOAT4 _ambiantMaterial;
+
+	float _specPower;
 
 public:
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
