@@ -24,6 +24,9 @@ struct ConstantBuffer
 	XMFLOAT4 AmbiantMaterial;
 	XMFLOAT4 DiffuseLight;
 	XMFLOAT4 DiffuseMaterial;
+	XMFLOAT4 specularLight;
+	XMFLOAT4 specularMaterial;
+	XMFLOAT3 cameraPosition;
 	float specPower;
 	XMFLOAT3 LightDir;
 	float count;
@@ -76,6 +79,8 @@ class DX11Framework
 	XMFLOAT4 _ambiantLight;
 	XMFLOAT4 _ambiantMaterial;
 
+	XMFLOAT4 _specularLight;
+	XMFLOAT4 _specularMaterial;
 	float _specPower;
 
 public:

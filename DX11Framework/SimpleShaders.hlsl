@@ -7,6 +7,9 @@ cbuffer ConstantBuffer : register(b0)
     float4 AmbiantMaterial;
     float4 DiffuseLight;
     float4 DiffuseMaterial;
+    float4 specularLight;
+    float4 specularMaterial;
+    float3 cameraPosition;
     float specPower;
     float3 LightDir;
 	float count;
@@ -33,7 +36,7 @@ VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL)
     output.position = mul(output.position, View);
     output.position = mul(output.position, Projection);
     
-    output.worldNormalPosition = mul(float4(Normal, 0), World);;
+    output.worldNormalPosition = mul(float4(Normal, 0), World);
     
     
     return output;
@@ -47,8 +50,11 @@ float4 PS_main(VS_Out input) : SV_TARGET
     
     float4 diffuse = DiffuseAmount * (DiffuseMaterial * DiffuseLight);
     
-    Float specIntesity = dot(reflect(LightDir, normalW), (View - World));
+    float3 viewerDir = input.posW - cameraPosition;
+    float SpecIntesity = saturate(-dot(normalize(reflect(LightDir, normalW)), normalize(viewerDir)));
 
-    
-    return Ambiant + diffuse;
+    SpecIntesity = pow(SpecIntesity, specPower); 
+
+    float4 Specualr = SpecIntesity * (specularMaterial * specularLight);
+    return diffuse + Ambiant + Specualr;
 }

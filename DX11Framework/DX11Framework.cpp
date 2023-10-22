@@ -407,13 +407,15 @@ HRESULT DX11Framework::InitRunTimeData()
 {
     //Light
     _diffuseLight = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
-    _diffuseMaterial = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    _lightDir = XMFLOAT3(0, -0.5f, 0.5f);
+    _diffuseMaterial = XMFLOAT4(0.0f, 0.0f, 0.5f, 1.0f);
+    _lightDir = XMFLOAT3(0.0, 0.0f, 1.0f);
 
-    _ambiantLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-    _ambiantMaterial = XMFLOAT4(1.0f, 0.1f, 0.1f, 1.0f);
+    _ambiantLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+    _ambiantMaterial = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
-    _specPower = (10.0f);
+    _specularMaterial = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    _specularLight = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+    _specPower = 10.0f;
 
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
@@ -421,6 +423,9 @@ HRESULT DX11Framework::InitRunTimeData()
     XMFLOAT3 Eye = XMFLOAT3(0, 0, -3.0f);
     XMFLOAT3 At = XMFLOAT3(0, 0, 0);
     XMFLOAT3 Up = XMFLOAT3(0, 1, 0);
+
+    //set camera position in the shader
+    _cbData.cameraPosition = Eye;
 
     XMStoreFloat4x4(&_View, XMMatrixLookAtLH(XMLoadFloat3(&Eye), XMLoadFloat3(&At), XMLoadFloat3(&Up)));
 
@@ -489,6 +494,9 @@ void DX11Framework::Draw()
     _cbData.LightDir = _lightDir;
     _cbData.AmbiantLight = _ambiantLight;
     _cbData.AmbiantMaterial = _ambiantMaterial;
+
+    _cbData.specularLight = _specularLight;
+    _cbData.specularMaterial = _specularMaterial;
     _cbData.specPower = _specPower;
 
     _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
