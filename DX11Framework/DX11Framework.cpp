@@ -239,10 +239,10 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
         { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT3(-1.00f, -1.00f, -1),  XMFLOAT2(0.0f,0.0f)},
         { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT2(1.0f,0.0f)},
 
-        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1),  XMFLOAT2(0.0f,1.0f)},
-        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT2(1.0f,1.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1),  XMFLOAT2(0.0f,0.0f)},
-        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT2(1.0f,0.0f)},
+        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1),  XMFLOAT2(1.0f,1.0f)},
+        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT2(0.0f,1.0f)},
+        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1),  XMFLOAT2(1.0f,0.0f)},
+        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT2(0.0f,0.0f)},
     };
 
     D3D11_BUFFER_DESC cubeVertexBufferDesc = {};
