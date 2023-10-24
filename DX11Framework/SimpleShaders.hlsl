@@ -1,5 +1,6 @@
 Texture2D diffuseTex : register(t0);
 Texture2D specTex : register(t1);
+Texture2D normTex : register(t2);
 SamplerState bilinearSampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
@@ -17,6 +18,9 @@ cbuffer ConstantBuffer : register(b0)
     float specPower;
     float3 LightDir;
 	float count;
+    uint hasTex;
+    uint hasNormMap;
+    uint hasSpecMap;
 }
 
 struct VS_Out
@@ -40,7 +44,6 @@ VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL, float2 TexCoor
     output.position = mul(output.position, View);
     output.position = mul(output.position, Projection);
     
-
     output.worldNormalPosition = mul(float4(Normal, 0), World);
     output.texCoord = TexCoord;
     
@@ -49,20 +52,52 @@ VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL, float2 TexCoor
 
 float4 PS_main(VS_Out input) : SV_TARGET
 {
-    float4 texColor = diffuseTex.Sample(bilinearSampler, input.texCoord);
     
-    float3 normalW = normalize(input.worldNormalPosition);
     
-    float DiffuseAmount = saturate(dot(normalW, -normalize(LightDir)));    
-    float4 diffuse = DiffuseAmount * (texColor * DiffuseLight);
-    float4 Ambiant = AmbiantLight * texColor;     
+    float3 normalW;
+    if(hasNormMap == 1)
+    {
+        input.normal = normTex.Sample(bilinearSampler, input.texCoord);
+        normalW = normalize(input.normal);
+    }
+    else
+    {
+        normalW = normalize(input.worldNormalPosition);
+    }
     
-    float4 specMap = specTex.Sample(bilinearSampler, input.texCoord);
-
+    float DiffuseAmount = saturate(dot(normalW, -normalize(LightDir))); 
+    float4 diffuse;
+    float4 ambiant;
+    
+    if(hasTex == 1)
+    {
+        float4 texColor = diffuseTex.Sample(bilinearSampler, input.texCoord);
+        diffuse = DiffuseAmount * (texColor * DiffuseLight);
+        ambiant = AmbiantLight * texColor;
+    }
+    else
+    {
+        diffuse = DiffuseAmount * (DiffuseMaterial * DiffuseLight);
+        ambiant = AmbiantLight * AmbiantMaterial;
+    }
+    
+    //Specular Lighting Calculation
     float3 viewerDir = input.posW - cameraPosition;
     float SpecIntesity = saturate(-dot(normalize(reflect(LightDir, normalW)), normalize(viewerDir)));
     SpecIntesity = pow(SpecIntesity, specPower); 
-    float4 Specualr = SpecIntesity * (specMap * specularLight);
+    
+    float4 specualr;
+    
+    if(hasSpecMap == 1)
+    {
+        float4 specMap = specTex.Sample(bilinearSampler, input.texCoord);
+        specualr = SpecIntesity * (specMap * specularLight);
+    }
+    else
+    {
+        specualr = SpecIntesity * (specularMaterial * specularLight);
+    }
+    
 
-    return diffuse + Ambiant + Specualr;
+    return diffuse + ambiant + specualr;
 }

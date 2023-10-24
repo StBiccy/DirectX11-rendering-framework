@@ -425,7 +425,7 @@ HRESULT DX11Framework::InitRunTimeData()
     //Light
     _diffuseLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     _diffuseMaterial = XMFLOAT4(0.0f, 0.0f, 0.5f, 1.0f);
-    _lightDir = XMFLOAT3(0.0, 0.0f, 1.0f);
+    _lightDir = XMFLOAT3(1.0, 1.0f, -1.0f);
 
     _ambiantLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
     _ambiantMaterial = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -444,6 +444,11 @@ HRESULT DX11Framework::InitRunTimeData()
     if (FAILED(hr)) { return hr; }
 
     _immediateContext->PSSetShaderResources(1, 1, &_createSpecMap);
+
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_NRM.dds", nullptr, &_createNormMap);
+    if (FAILED(hr)) { return hr; }
+
+    _immediateContext->PSSetShaderResources(2, 1, &_createNormMap);
 
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
@@ -503,8 +508,8 @@ void DX11Framework::Update()
     static float simpleCount = 0.0f;
     simpleCount += deltaTime;
 
-    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(0,0,4));
-    XMStoreFloat4x4(&_World2, XMMatrixIdentity() * XMMatrixRotationY(simpleCount)* XMMatrixTranslation(5, 0, 0) * XMLoadFloat4x4(&_World));
+    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(0,0,2));
+    XMStoreFloat4x4(&_World2, XMMatrixIdentity() * XMMatrixTranslation(5, 0, 0) * XMLoadFloat4x4(&_World));
     XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
     XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
     
@@ -531,6 +536,9 @@ void DX11Framework::Draw()
     _cbData.specPower = _specPower;
 
     _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    _cbData.hasTex = 1;
+    _cbData.hasSpecMap = 1;
+    _cbData.hasNormMap = 1;
 
     //Present unbinds render target, so rebind and clear at start of each frame
     float backgroundColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };  
@@ -539,6 +547,7 @@ void DX11Framework::Draw()
     _immediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0.0f);
    
     //Store this frames data in constant buffer struct
+
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World));
     _cbData.View = XMMatrixTranspose(XMLoadFloat4x4(&_View));
     _cbData.Projection = XMMatrixTranspose(XMLoadFloat4x4(&_Projection));
