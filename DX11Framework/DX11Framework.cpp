@@ -436,7 +436,14 @@ HRESULT DX11Framework::InitRunTimeData()
 
     //Load Textures;
     hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_COLOR.dds", nullptr, &_createTexture);
+    if (FAILED(hr)) { return hr; }
+
     _immediateContext->PSSetShaderResources(0, 1, &_createTexture);
+
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_SPEC.dds", nullptr, &_createSpecMap);
+    if (FAILED(hr)) { return hr; }
+
+    _immediateContext->PSSetShaderResources(1, 1, &_createSpecMap);
 
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
@@ -478,6 +485,9 @@ DX11Framework::~DX11Framework()
     if(_cubeIndexBuffer)_cubeIndexBuffer->Release();
     if (_pyramidVertexBuffer)_pyramidVertexBuffer->Release();
     if (_pyramidIndexBuffer)_pyramidIndexBuffer->Release();
+
+    if (_createTexture)_createTexture->Release();
+    if (_createSpecMap)_createSpecMap->Release();
 }
 
 

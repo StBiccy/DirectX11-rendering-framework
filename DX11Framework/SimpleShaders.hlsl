@@ -1,4 +1,5 @@
 Texture2D diffuseTex : register(t0);
+Texture2D specTex : register(t1);
 SamplerState bilinearSampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
@@ -16,7 +17,6 @@ cbuffer ConstantBuffer : register(b0)
     float specPower;
     float3 LightDir;
 	float count;
-    uint hasTexture;
 }
 
 struct VS_Out
@@ -40,6 +40,7 @@ VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL, float2 TexCoor
     output.position = mul(output.position, View);
     output.position = mul(output.position, Projection);
     
+
     output.worldNormalPosition = mul(float4(Normal, 0), World);
     output.texCoord = TexCoord;
     
@@ -56,12 +57,12 @@ float4 PS_main(VS_Out input) : SV_TARGET
     float4 diffuse = DiffuseAmount * (texColor * DiffuseLight);
     float4 Ambiant = AmbiantLight * texColor;     
     
-    
+    float4 specMap = specTex.Sample(bilinearSampler, input.texCoord);
+
     float3 viewerDir = input.posW - cameraPosition;
     float SpecIntesity = saturate(-dot(normalize(reflect(LightDir, normalW)), normalize(viewerDir)));
-
     SpecIntesity = pow(SpecIntesity, specPower); 
+    float4 Specualr = SpecIntesity * (specMap * specularLight);
 
-    float4 Specualr = SpecIntesity * (specularMaterial * specularLight);
     return diffuse + Ambiant + Specualr;
 }
