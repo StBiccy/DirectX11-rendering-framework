@@ -13,6 +13,7 @@ struct SimpleVertex
 {
 	XMFLOAT3 Position;
 	XMFLOAT3 Normal;
+	XMFLOAT2 TexCoord;
 };
 
 struct ConstantBuffer
@@ -30,6 +31,7 @@ struct ConstantBuffer
 	float specPower;
 	XMFLOAT3 LightDir;
 	float count;
+	unsigned int hasTexture;
 };
 
 class DX11Framework
@@ -47,6 +49,8 @@ class DX11Framework
 
 	ID3D11RasterizerState* _fillState;
 	ID3D11RasterizerState* _wireframeState;
+	ID3D11SamplerState* _bilinearSampleState;
+	ID3D11ShaderResourceView* _createTexture;
 	ID3D11VertexShader* _vertexShader;
 	ID3D11InputLayout* _inputLayout;
 	ID3D11PixelShader* _pixelShader;
@@ -56,7 +60,6 @@ class DX11Framework
 	ID3D11Buffer* _pyramidVertexBuffer;
 	ID3D11Buffer* _pyramidIndexBuffer;
 	ID3D11Buffer* _lineVertexBuffer;
-
 
 	HWND _windowHandle;
 

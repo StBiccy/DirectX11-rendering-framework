@@ -1,4 +1,5 @@
 #include "DX11Framework.h"
+#include "DDSTextureLoader.h"
 #include <string>
 
 //#define RETURNFAIL(x) if(FAILED(x)) return x;
@@ -200,6 +201,7 @@ HRESULT DX11Framework::InitShadersAndInputLayout()
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA,   0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
     hr = _device->CreateInputLayout(inputElementDesc, ARRAYSIZE(inputElementDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &_inputLayout);
@@ -229,18 +231,18 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
 {
     HRESULT hr = S_OK;
 
-    SimpleVertex CubeVertexData[] = 
+    SimpleVertex CubeVertexData[] =
     {
-        //Position                     //Color             
-        { XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT3(-1.00f,  1.00f, -1)},
-        { XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT3(1.00f,  1.00f, -1)},
-        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT3(-1.00f, -1.00f, -1)},
-        { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT3(1.00f, -1.00f, -1)},
+        //Position                     //Normal           
+        { XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT3(-1.00f,  1.00f, -1),  XMFLOAT2(0.0f,1.0f)},
+        { XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT2(1.0f,1.0f)},
+        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT3(-1.00f, -1.00f, -1),  XMFLOAT2(0.0f,0.0f)},
+        { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT2(1.0f,0.0f)},
 
-        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1)},
-        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1)},
-        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1)},
-        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1)},
+        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1),  XMFLOAT2(0.0f,1.0f)},
+        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT2(1.0f,1.0f)},
+        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1),  XMFLOAT2(0.0f,0.0f)},
+        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT2(1.0f,0.0f)},
     };
 
     D3D11_BUFFER_DESC cubeVertexBufferDesc = {};
@@ -400,22 +402,41 @@ HRESULT DX11Framework::InitPipelineVariables()
     _immediateContext->VSSetConstantBuffers(0, 1, &_constantBuffer);
     _immediateContext->PSSetConstantBuffers(0, 1, &_constantBuffer);
 
+    //Sampler State
+    D3D11_SAMPLER_DESC bilinearSamplerDesc = {};
+    bilinearSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    bilinearSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    bilinearSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    bilinearSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    bilinearSamplerDesc.MaxLOD = 1;
+    bilinearSamplerDesc.MinLOD = 0;
+    
+    hr = _device->CreateSamplerState(&bilinearSamplerDesc, &_bilinearSampleState);
+    if (FAILED(hr)) { return hr; }
+
+    _immediateContext->PSSetSamplers(0, 1, &_bilinearSampleState);
+
     return S_OK;
 }
 
 HRESULT DX11Framework::InitRunTimeData()
 {
+    HRESULT hr;
     //Light
-    _diffuseLight = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+    _diffuseLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     _diffuseMaterial = XMFLOAT4(0.0f, 0.0f, 0.5f, 1.0f);
     _lightDir = XMFLOAT3(0.0, 0.0f, 1.0f);
 
-    _ambiantLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+    _ambiantLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
     _ambiantMaterial = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
     _specularMaterial = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    _specularLight = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+    _specularLight = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
     _specPower = 10.0f;
+
+    //Load Textures;
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_COLOR.dds", nullptr, &_createTexture);
+    _immediateContext->PSSetShaderResources(0, 1, &_createTexture);
 
     //Camera
     float aspect = _viewport.Width / _viewport.Height;

@@ -1,3 +1,6 @@
+Texture2D diffuseTex : register(t0);
+SamplerState bilinearSampler : register(s0);
+
 cbuffer ConstantBuffer : register(b0)
 {
     float4x4 Projection;
@@ -13,6 +16,7 @@ cbuffer ConstantBuffer : register(b0)
     float specPower;
     float3 LightDir;
 	float count;
+    uint hasTexture;
 }
 
 struct VS_Out
@@ -22,13 +26,13 @@ struct VS_Out
     float3 normal : NORMAL;
     float4 color : COLOR;
     float3 worldNormalPosition : POSTITIONWN;
+    float2 texCoord : TEXCOOORD;
 };
 
-VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL)
+VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL, float2 TexCoord : TEXCOORD)
 {   
     VS_Out output = (VS_Out)0;
 
-    //Position.y += sin(count);
     
     float4 Pos4 = float4(Position, 1.0f);
     output.position = mul(Pos4, World);
@@ -37,18 +41,21 @@ VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL)
     output.position = mul(output.position, Projection);
     
     output.worldNormalPosition = mul(float4(Normal, 0), World);
-    
+    output.texCoord = TexCoord;
     
     return output;
 }
 
 float4 PS_main(VS_Out input) : SV_TARGET
 {
-    float3 normalW = normalize(input.worldNormalPosition);
-    float DiffuseAmount = saturate(dot(normalW, -normalize(LightDir)));
-    float4 Ambiant = AmbiantLight * AmbiantMaterial;
+    float4 texColor = diffuseTex.Sample(bilinearSampler, input.texCoord);
     
-    float4 diffuse = DiffuseAmount * (DiffuseMaterial * DiffuseLight);
+    float3 normalW = normalize(input.worldNormalPosition);
+    
+    float DiffuseAmount = saturate(dot(normalW, -normalize(LightDir)));    
+    float4 diffuse = DiffuseAmount * (texColor * DiffuseLight);
+    float4 Ambiant = AmbiantLight * texColor;     
+    
     
     float3 viewerDir = input.posW - cameraPosition;
     float SpecIntesity = saturate(-dot(normalize(reflect(LightDir, normalW)), normalize(viewerDir)));
