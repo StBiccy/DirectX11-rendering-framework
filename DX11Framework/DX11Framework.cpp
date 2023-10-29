@@ -289,52 +289,9 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
     hr = _device->CreateBuffer(&CubeBufferDesc, &cubeIndexData, &_cubeIndexBuffer);
     if (FAILED(hr)) return hr;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////
 
-    //SimpleVertex PyramidVertexData[] =
-    //{
-    //    //Position                     //Color             
-    //    { XMFLOAT3(1.00f,  -1.00f, -1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
-    //    { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
-    //    { XMFLOAT3(1.00f,  -1.00f, 1), XMFLOAT4(1.0f,  0.0f, 0.0f,  0.0f)},
-    //    { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT4(0.0f,  0.0f, 1.0f,  0.0f)},
-
-    //    { XMFLOAT3(0.00f, 1.00f, 0), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f)}
-    //};
-
-    //D3D11_BUFFER_DESC pyramidVertexBufferDesc = {};
-    //pyramidVertexBufferDesc.ByteWidth = sizeof(PyramidVertexData);
-    //pyramidVertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    //pyramidVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-    //D3D11_SUBRESOURCE_DATA pyramidVertexData = { PyramidVertexData };
-
-    //hr = _device->CreateBuffer(&pyramidVertexBufferDesc, &pyramidVertexData, &_pyramidVertexBuffer);
-    //if (FAILED(hr)) return hr;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    /*WORD PyramidIndexData[] =
-    {
-        //Indices
-        2, 1, 0,
-        2, 3, 1,
-
-        0, 1, 4,
-        2, 0, 4,
-        4, 3, 2,
-        4, 1, 3
-    };
-
-    D3D11_BUFFER_DESC PyramidBufferDesc = {};
-    PyramidBufferDesc.ByteWidth = sizeof(PyramidIndexData);
-    PyramidBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    PyramidBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-    D3D11_SUBRESOURCE_DATA pyramidIndexData = { PyramidIndexData };
-
-    hr = _device->CreateBuffer(&PyramidBufferDesc, &pyramidIndexData, &_pyramidIndexBuffer);
-    if (FAILED(hr)) return hr;*/
+    _mesh = OBJLoader::Load("Models\\Car\\Car.obj", _device, false);
 
     //////
 
@@ -435,20 +392,17 @@ HRESULT DX11Framework::InitRunTimeData()
     _specPower = 10.0f;
 
     //Load Textures;
-    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_COLOR.dds", nullptr, &_createTexture);
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_COLOR.dds", nullptr, &_crateTexture);
     if (FAILED(hr)) { return hr; }
 
-    _immediateContext->PSSetShaderResources(0, 1, &_createTexture);
-
-    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_SPEC.dds", nullptr, &_createSpecMap);
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_SPEC.dds", nullptr, &_crateSpecMap);
     if (FAILED(hr)) { return hr; }
 
-    _immediateContext->PSSetShaderResources(1, 1, &_createSpecMap);
-
-    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_NRM.dds", nullptr, &_createNormMap);
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_NRM.dds", nullptr, &_crateNormMap);
     if (FAILED(hr)) { return hr; }
 
-    _immediateContext->PSSetShaderResources(2, 1, &_createNormMap);
+    hr = CreateDDSTextureFromFile(_device, L"Models\\Car\\Car_COLOR.dds", nullptr, &_carTexture);
+    if (FAILED(hr)) { return hr; }
 
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
@@ -491,8 +445,8 @@ DX11Framework::~DX11Framework()
     if (_pyramidVertexBuffer)_pyramidVertexBuffer->Release();
     if (_pyramidIndexBuffer)_pyramidIndexBuffer->Release();
 
-    if (_createTexture)_createTexture->Release();
-    if (_createSpecMap)_createSpecMap->Release();
+    if (_crateTexture)_crateTexture->Release();
+    if (_crateSpecMap)_crateSpecMap->Release();
 }
 
 
@@ -537,8 +491,8 @@ void DX11Framework::Draw()
 
     _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _cbData.hasTex = 1;
-    _cbData.hasSpecMap = 1;
-    _cbData.hasNormMap = 1;
+    _cbData.hasSpecMap = 0;
+    _cbData.hasNormMap = 0;
 
     //Present unbinds render target, so rebind and clear at start of each frame
     float backgroundColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };  
@@ -558,25 +512,36 @@ void DX11Framework::Draw()
     memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
     _immediateContext->Unmap(_constantBuffer, 0);
 
+    _immediateContext->PSSetShaderResources(0, 1, &_carTexture);
+
     //Set object variables and draw
     UINT stride = {sizeof(SimpleVertex)};
     UINT offset =  0 ;
-    _immediateContext->IASetVertexBuffers(0, 1, &_cubeVertexBuffer, &stride, &offset);
-    _immediateContext->IASetIndexBuffer(_cubeIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    _immediateContext->IASetVertexBuffers(0, 1, &_mesh.VertexBuffer, &stride, &offset);
+    _immediateContext->IASetIndexBuffer(_mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
     _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
     _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
 
-    _immediateContext->DrawIndexed(36, 0, 0);
+    _immediateContext->DrawIndexed(_mesh.IndexCount, 0, 0);
 
     //////
+
+
 
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World3));
 
     //Write constant buffer data onto GPU
+    _cbData.hasSpecMap = 1;
+    _cbData.hasNormMap = 1;
+    _immediateContext->PSSetShaderResources(0, 1, &_crateTexture);
+    _immediateContext->PSSetShaderResources(1, 1, &_crateSpecMap);
+    _immediateContext->PSSetShaderResources(2, 1, &_crateNormMap);
+
     _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
     _immediateContext->Unmap(_constantBuffer, 0);
+
 
     _immediateContext->IASetVertexBuffers(0, 1, &_cubeVertexBuffer, &stride, &offset);
     _immediateContext->IASetIndexBuffer(_cubeIndexBuffer, DXGI_FORMAT_R16_UINT, 0);

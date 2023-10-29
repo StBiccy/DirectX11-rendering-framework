@@ -1,40 +1,17 @@
 #pragma once
-
+#include "Structures.h"
 #include <windows.h>
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include "OBJLoader.h"
+
 //#include <wrl.h>
 
 using namespace DirectX;
 //using Microsoft::WRL::ComPtr;
 
-struct SimpleVertex
-{
-	XMFLOAT3 Position;
-	XMFLOAT3 Normal;
-	XMFLOAT2 TexCoord;
-};
 
-struct ConstantBuffer
-{
-	XMMATRIX Projection;
-	XMMATRIX View;
-	XMMATRIX World;
-	XMFLOAT4 AmbiantLight;
-	XMFLOAT4 AmbiantMaterial;
-	XMFLOAT4 DiffuseLight;
-	XMFLOAT4 DiffuseMaterial;
-	XMFLOAT4 specularLight;
-	XMFLOAT4 specularMaterial;
-	XMFLOAT3 cameraPosition;
-	float specPower;
-	XMFLOAT3 LightDir;
-	float count;
-	unsigned int hasTex;
-	unsigned int hasNormMap;
-	unsigned int hasSpecMap;
-};
 
 class DX11Framework
 {
@@ -52,9 +29,10 @@ class DX11Framework
 	ID3D11RasterizerState* _fillState;
 	ID3D11RasterizerState* _wireframeState;
 	ID3D11SamplerState* _bilinearSampleState;
-	ID3D11ShaderResourceView* _createTexture;
-	ID3D11ShaderResourceView* _createSpecMap;
-	ID3D11ShaderResourceView* _createNormMap;
+	ID3D11ShaderResourceView* _carTexture;
+	ID3D11ShaderResourceView* _crateTexture;
+	ID3D11ShaderResourceView* _crateSpecMap;
+	ID3D11ShaderResourceView* _crateNormMap;
 	ID3D11VertexShader* _vertexShader;
 	ID3D11InputLayout* _inputLayout;
 	ID3D11PixelShader* _pixelShader;
@@ -66,6 +44,8 @@ class DX11Framework
 	ID3D11Buffer* _lineVertexBuffer;
 
 	HWND _windowHandle;
+
+	MeshData _mesh;
 
 	XMFLOAT4X4 _World;
 	XMFLOAT4X4 _World2;

@@ -27,14 +27,9 @@
     <ClCompile Include="DDSTextureLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DX11Framework.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClCompile Include="OBJLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleShaders.hlsl">
