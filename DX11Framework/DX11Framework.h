@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include "OBJLoader.h"
+#include "GameObject.h"
 
 //#include <wrl.h>
 
@@ -45,7 +46,7 @@ class DX11Framework
 
 	HWND _windowHandle;
 
-	MeshData _mesh;
+	GameObject _car;
 
 	XMFLOAT4X4 _World;
 	XMFLOAT4X4 _World2;

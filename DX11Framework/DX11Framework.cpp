@@ -291,7 +291,7 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
 
     /////////////
 
-    _mesh = OBJLoader::Load("Models\\Car\\Car.obj", _device, false);
+    _car.SetMeshData(OBJLoader::Load("Models\\Car\\Car.obj", _device));
 
     //////
 
@@ -339,7 +339,7 @@ HRESULT DX11Framework::InitPipelineVariables()
     hr = _device->CreateRasterizerState(&rasterizerDesc, &_wireframeState);
     if (FAILED(hr)) return hr;
 
-    _immediateContext->RSSetState(_wireframeState);
+    _immediateContext->RSSetState(_fillState);
 
 
     //Viewport Values
@@ -403,6 +403,8 @@ HRESULT DX11Framework::InitRunTimeData()
 
     hr = CreateDDSTextureFromFile(_device, L"Models\\Car\\Car_COLOR.dds", nullptr, &_carTexture);
     if (FAILED(hr)) { return hr; }
+
+    _car.SetTexture(_carTexture);
 
     //Camera
     float aspect = _viewport.Width / _viewport.Height;
@@ -470,7 +472,7 @@ void DX11Framework::Update()
 
     if (GetAsyncKeyState(VK_F1) & 0x0001)
     {
-        _immediateContext->RSSetState(_fillState);
+        _immediateContext->RSSetState(_wireframeState);
     }
 
     _cbData.count = simpleCount;
@@ -515,18 +517,13 @@ void DX11Framework::Draw()
     _immediateContext->PSSetShaderResources(0, 1, &_carTexture);
 
     //Set object variables and draw
-    UINT stride = {sizeof(SimpleVertex)};
-    UINT offset =  0 ;
-    _immediateContext->IASetVertexBuffers(0, 1, &_mesh.VertexBuffer, &stride, &offset);
-    _immediateContext->IASetIndexBuffer(_mesh.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-    _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
-    _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
-
-    _immediateContext->DrawIndexed(_mesh.IndexCount, 0, 0);
+    _car.Draw(_immediateContext, &_cbData, _vertexShader, _pixelShader);
 
     //////
 
+    UINT stride = {sizeof(SimpleVertex)};
+    UINT offset =  0 ;
 
 
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World3));
