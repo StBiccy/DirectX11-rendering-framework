@@ -4,8 +4,10 @@
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <vector>
 #include "OBJLoader.h"
 #include "GameObject.h"
+#include "BaseCamera.h"
 
 //#include <wrl.h>
 
@@ -47,6 +49,9 @@ class DX11Framework
 	HWND _windowHandle;
 
 	GameObject _car;
+
+	std::vector<BaseCamera*> _cams;
+	byte _currentCam = 0;
 
 	XMFLOAT4X4 _World;
 	XMFLOAT4X4 _World2;

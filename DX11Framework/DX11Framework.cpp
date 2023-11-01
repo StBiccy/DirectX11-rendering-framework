@@ -406,21 +406,16 @@ HRESULT DX11Framework::InitRunTimeData()
 
     _car.SetTexture(_carTexture);
 
-    //Camera
-    float aspect = _viewport.Width / _viewport.Height;
-
-    XMFLOAT3 Eye = XMFLOAT3(0, 0, -3.0f);
-    XMFLOAT3 At = XMFLOAT3(0, 0, 0);
-    XMFLOAT3 Up = XMFLOAT3(0, 1, 0);
+    //Cameras
+    _cams.push_back(new BaseCamera(XMFLOAT3(0, 0, -3.0f), XMFLOAT3(0, 0, 0), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.002f, 200));
+    _cams.push_back(new BaseCamera(XMFLOAT3(0, 0, 7.0f), XMFLOAT3(0, 0, 0), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.002f, 200));
 
     //set camera position in the shader
-    _cbData.cameraPosition = Eye;
+    _cbData.cameraPosition = _cams[0]->GetEye();
 
-    XMStoreFloat4x4(&_View, XMMatrixLookAtLH(XMLoadFloat3(&Eye), XMLoadFloat3(&At), XMLoadFloat3(&Up)));
+    _View = _cams[0]->GetView();
+    _Projection = _cams[0]->GetProj();
 
-    //Projection
-    XMMATRIX perspective = XMMatrixPerspectiveFovLH(XMConvertToRadians(90), aspect, 0.01f, 100.0f);
-    XMStoreFloat4x4(&_Projection, perspective);
 
     return S_OK;
 }
@@ -449,6 +444,9 @@ DX11Framework::~DX11Framework()
 
     if (_crateTexture)_crateTexture->Release();
     if (_crateSpecMap)_crateSpecMap->Release();
+
+    for (int i = 0; i < _cams.size(); i++) { delete _cams[i]; }
+    _cams.clear();
 }
 
 
@@ -469,6 +467,21 @@ void DX11Framework::Update()
     XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
     XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
     
+
+    if (GetAsyncKeyState(VK_NUMPAD1))
+    {
+        _currentCam = 1;
+        _cbData.cameraPosition = _cams[_currentCam]->GetEye();
+        _View = _cams[_currentCam]->GetView();
+        _Projection = _cams[_currentCam]->GetProj();
+    }
+    else if (GetAsyncKeyState(VK_NUMPAD0))
+    {
+        _currentCam = 0;
+        _cbData.cameraPosition = _cams[_currentCam]->GetEye();
+        _View = _cams[_currentCam]->GetView();
+        _Projection = _cams[_currentCam]->GetProj();
+    }
 
     if (GetAsyncKeyState(VK_F1) & 0x0001)
     {
@@ -518,7 +531,13 @@ void DX11Framework::Draw()
 
     //Set object variables and draw
 
-    _car.Draw(_immediateContext, &_cbData, _vertexShader, _pixelShader);
+    _car.Draw(_immediateContext, &_cbData);
+    _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
+    _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
+
+    MeshData meshdata = *_car.GetMeshData();
+    _immediateContext->DrawIndexed(meshdata.IndexCount, 0, 0);
+
 
     //////
 
