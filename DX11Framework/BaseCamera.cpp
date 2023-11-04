@@ -1,20 +1,22 @@
 #include "BaseCamera.h"
 
-BaseCamera::BaseCamera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, float windowWidth, float windowHeight, float nearDepth, float farDepth)
+BaseCamera::BaseCamera(XMFLOAT3 rotation, XMFLOAT3 position, XMFLOAT3 to, XMFLOAT3 up, float windowWidth, float windowHeight, float nearDepth, float farDepth)
 {
     _windowWidth = windowWidth;
     _windowHight = windowHeight;
     //Camera
     float aspect = _windowWidth / _windowHight;
 
+    _rotation = rotation;
+
     _eye = position;
-    _at = at;
+    _to = to;
     _up = up;
 
-    XMStoreFloat4x4(&_view, XMMatrixLookAtLH(XMLoadFloat3(&_eye), XMLoadFloat3(&_at), XMLoadFloat3(&_up)));
+    XMStoreFloat4x4(&_view, XMMatrixLookToLH(XMLoadFloat3(&_eye), XMLoadFloat3(&_to), XMLoadFloat3(&_up)));
 
     //Projection
-    XMMATRIX perspective = XMMatrixPerspectiveFovLH(XMConvertToRadians(90), aspect, 0.01f, 100.0f);
+    XMMATRIX perspective = XMMatrixPerspectiveFovLH(XMConvertToRadians(90), aspect, nearDepth, farDepth);
     XMStoreFloat4x4(&_projection, perspective);
 }
 

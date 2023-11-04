@@ -76,6 +76,8 @@ class DX11Framework
 	XMFLOAT4 _specularMaterial;
 	float _specPower;
 
+	float _speed = 10;
+
 public:
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
 	HRESULT CreateWindowHandle(HINSTANCE hInstance, int nCmdShow);

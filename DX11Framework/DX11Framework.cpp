@@ -407,8 +407,8 @@ HRESULT DX11Framework::InitRunTimeData()
     _car.SetTexture(_carTexture);
 
     //Cameras
-    _cams.push_back(new BaseCamera(XMFLOAT3(0, 0, -3.0f), XMFLOAT3(0, 0, 0), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.002f, 200));
-    _cams.push_back(new BaseCamera(XMFLOAT3(0, 0, 7.0f), XMFLOAT3(0, 0, 0), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.002f, 200));
+    _cams.push_back(new BaseCamera(XMFLOAT3(0, 0, 0) ,XMFLOAT3(0, 0, -3.0f), XMFLOAT3(0, 0, 1), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.001f, 100));
+    _cams.push_back(new BaseCamera(XMFLOAT3(0, 90, 0), XMFLOAT3(0, 0, 7.0f), XMFLOAT3(0, 0, -1), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.001f, 100));
 
     //set camera position in the shader
     _cbData.cameraPosition = _cams[0]->GetEye();
@@ -467,7 +467,7 @@ void DX11Framework::Update()
     XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
     XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
     
-
+    //swap Cameras
     if (GetAsyncKeyState(VK_NUMPAD1))
     {
         _currentCam = 1;
@@ -483,10 +483,108 @@ void DX11Framework::Update()
         _Projection = _cams[_currentCam]->GetProj();
     }
 
+    //cameraControls
+    if (GetKeyState(0x41) & 0x8000)
+    {
+        XMFLOAT3 currentPos = _cams[_currentCam]->GetEye();
+        _cams[_currentCam]->SetEye(XMFLOAT3(currentPos.x - _speed * deltaTime, currentPos.y, currentPos.z));
+        _cbData.cameraPosition = _cams[_currentCam]->GetEye();
+        _View = _cams[_currentCam]->GetView();
+    }
+    if (GetKeyState(0x44) & 0x8000)
+    {
+        XMFLOAT3 currentPos = _cams[_currentCam]->GetEye();
+        _cams[_currentCam]->SetEye(XMFLOAT3(currentPos.x + _speed * deltaTime, currentPos.y, currentPos.z));
+        _cbData.cameraPosition = _cams[_currentCam]->GetEye();
+        _View = _cams[_currentCam]->GetView();
+        _Projection = _cams[_currentCam]->GetProj();
+    }
+    if (GetKeyState(0x53) & 0x8000)
+    {
+        XMFLOAT3 currentPos = _cams[_currentCam]->GetEye();
+        XMFLOAT3 to = _cams[_currentCam]->GetTo();
+
+        XMStoreFloat3(&currentPos, XMLoadFloat3(&currentPos) + (XMLoadFloat3(&to) * -_speed * deltaTime));
+        _cams[_currentCam]->SetEye(currentPos);
+
+        _cbData.cameraPosition = _cams[_currentCam]->GetEye();
+        _View = _cams[_currentCam]->GetView();
+    }
+    if (GetKeyState(0x57) & 0x8000)
+    {
+        XMFLOAT3 currentPos = _cams[_currentCam]->GetEye();
+        XMFLOAT3 to = _cams[_currentCam]->GetTo();
+
+        XMStoreFloat3(&currentPos, XMLoadFloat3(&currentPos) + (XMLoadFloat3(&to) * +_speed * deltaTime));
+        _cams[_currentCam]->SetEye(currentPos);
+
+        _cbData.cameraPosition = _cams[_currentCam]->GetEye();
+        _View = _cams[_currentCam]->GetView();
+    }
+
+    if (GetKeyState(0x5a) & 0x8000)
+    {
+        XMFLOAT3 up = XMFLOAT3(0,1,0);
+        XMFLOAT3 forward = _cams[_currentCam]->GetTo();
+
+        XMMATRIX rotMat = XMMatrixRotationAxis(XMLoadFloat3(&up), -1 * deltaTime);
+        XMStoreFloat3(&forward, XMVector3TransformNormal(XMLoadFloat3(&forward), rotMat));
+        XMStoreFloat3(&up,XMVector3TransformNormal(XMLoadFloat3(&up), rotMat));
+
+        _cams[_currentCam]->SetTo(forward);
+        _cams[_currentCam]->SetUp(up);
+        _View = _cams[_currentCam]->GetView();
+    }
+    if (GetKeyState(0x43) & 0x8000)
+    {
+        XMFLOAT3 up = XMFLOAT3(0, 1, 0);
+        XMFLOAT3 forward = _cams[_currentCam]->GetTo();
+        XMMATRIX rotMat = XMMatrixRotationAxis(XMLoadFloat3(&up), 1 * deltaTime);
+        XMStoreFloat3(&forward, XMVector3TransformNormal(XMLoadFloat3(&forward), rotMat));
+        XMStoreFloat3(&up, XMVector3TransformNormal(XMLoadFloat3(&up), rotMat));
+
+        _cams[_currentCam]->SetTo(forward);
+        _cams[_currentCam]->SetUp(up);
+        _View = _cams[_currentCam]->GetView();
+    }
+    if (GetKeyState(0x56) & 0x8000)
+    {
+        XMFLOAT3 up = _cams[_currentCam]->GetUp();
+        XMFLOAT3 forward = _cams[_currentCam]->GetTo();
+        XMFLOAT3 right;
+        XMStoreFloat3(&right, XMVector3Cross(XMLoadFloat3(&forward), XMLoadFloat3(&up)));
+
+        XMMATRIX rotMat = XMMatrixRotationAxis(XMLoadFloat3(&right), 1 * deltaTime);
+        XMStoreFloat3(&forward, XMVector3TransformNormal(XMLoadFloat3(&forward), rotMat));
+        XMStoreFloat3(&up, XMVector3TransformNormal(XMLoadFloat3(&up), rotMat));
+
+        _cams[_currentCam]->SetTo(forward);
+        _cams[_currentCam]->SetUp(up);
+        _View = _cams[_currentCam]->GetView();
+    }
+    if (GetKeyState(0x58) & 0x8000)
+    {
+        XMFLOAT3 up = _cams[_currentCam]->GetUp();
+        XMFLOAT3 forward = _cams[_currentCam]->GetTo();
+        XMFLOAT3 right;
+        XMStoreFloat3(&right, XMVector3Cross(XMLoadFloat3(&forward), XMLoadFloat3(&up)));
+
+        XMMATRIX rotMat = XMMatrixRotationAxis(XMLoadFloat3(&right), -1 * deltaTime);
+        XMStoreFloat3(&forward, XMVector3TransformNormal(XMLoadFloat3(&forward), rotMat));
+        XMStoreFloat3(&up, XMVector3TransformNormal(XMLoadFloat3(&up), rotMat));
+
+        _cams[_currentCam]->SetTo(forward);
+        _cams[_currentCam]->SetUp(up);
+        _View = _cams[_currentCam]->GetView();
+    }
+
+
     if (GetAsyncKeyState(VK_F1) & 0x0001)
     {
         _immediateContext->RSSetState(_wireframeState);
     }
+
+    _cams[_currentCam]->Update(deltaTime);
 
     _cbData.count = simpleCount;
 
