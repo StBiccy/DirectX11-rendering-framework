@@ -3,7 +3,6 @@
 #include <windows.h>
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
-#include <DirectXMath.h>
 #include <vector>
 #include "OBJLoader.h"
 #include "GameObject.h"
@@ -11,7 +10,6 @@
 
 //#include <wrl.h>
 
-using namespace DirectX;
 //using Microsoft::WRL::ComPtr;
 
 

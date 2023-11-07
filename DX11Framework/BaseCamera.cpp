@@ -28,3 +28,5 @@ void BaseCamera::Update(float deltaTime)
 {
     XMStoreFloat4x4(&_viewProj, XMLoadFloat4x4(&_view) * XMLoadFloat4x4(&_projection));
 }
+
+

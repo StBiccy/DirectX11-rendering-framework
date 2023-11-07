@@ -487,14 +487,20 @@ void DX11Framework::Update()
     if (GetKeyState(0x41) & 0x8000)
     {
         XMFLOAT3 currentPos = _cams[_currentCam]->GetEye();
-        _cams[_currentCam]->SetEye(XMFLOAT3(currentPos.x - _speed * deltaTime, currentPos.y, currentPos.z));
+        XMFLOAT3 right = _cams[_currentCam]->GetRight();
+        XMStoreFloat3(&currentPos, XMLoadFloat3(&currentPos) - (XMLoadFloat3(&right) * -_speed * deltaTime));
+
+        _cams[_currentCam]->SetEye(currentPos);
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
     }
     if (GetKeyState(0x44) & 0x8000)
     {
         XMFLOAT3 currentPos = _cams[_currentCam]->GetEye();
-        _cams[_currentCam]->SetEye(XMFLOAT3(currentPos.x + _speed * deltaTime, currentPos.y, currentPos.z));
+        XMFLOAT3 right = _cams[_currentCam]->GetRight();
+        XMStoreFloat3(&currentPos, XMLoadFloat3(&currentPos) - (XMLoadFloat3(&right) * _speed * deltaTime));
+
+        _cams[_currentCam]->SetEye(currentPos);
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
         _Projection = _cams[_currentCam]->GetProj();
@@ -551,8 +557,7 @@ void DX11Framework::Update()
     {
         XMFLOAT3 up = _cams[_currentCam]->GetUp();
         XMFLOAT3 forward = _cams[_currentCam]->GetTo();
-        XMFLOAT3 right;
-        XMStoreFloat3(&right, XMVector3Cross(XMLoadFloat3(&forward), XMLoadFloat3(&up)));
+        XMFLOAT3 right = _cams[_currentCam]->GetRight();
 
         XMMATRIX rotMat = XMMatrixRotationAxis(XMLoadFloat3(&right), 1 * deltaTime);
         XMStoreFloat3(&forward, XMVector3TransformNormal(XMLoadFloat3(&forward), rotMat));

@@ -51,6 +51,12 @@ public:
 		_rotation = rotation;
 	}
 
+	XMFLOAT3 GetRight()
+	{
+		XMFLOAT3 right;
+		XMStoreFloat3(&right, XMVector3Cross(XMLoadFloat3(&_to), XMLoadFloat3(&_up)));
+		return right;
+	}
 
 	XMFLOAT4X4 GetView() { return _view; }
 	XMFLOAT4X4 GetProj() { return _projection; }

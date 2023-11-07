@@ -36,9 +36,15 @@
     <ClCompile Include="BaseCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleShaders.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SkyboxShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
@@ -59,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BaseCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
