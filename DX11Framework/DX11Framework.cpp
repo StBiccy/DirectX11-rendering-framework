@@ -219,10 +219,10 @@ HRESULT DX11Framework::InitShadersAndInputLayout()
         return hr;
     }
 
+
     hr = _device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &_pixelShader);
 
-    vsBlob->Release();
-    psBlob->Release();
+
 
     return hr;
 }
@@ -416,6 +416,12 @@ HRESULT DX11Framework::InitRunTimeData()
     _View = _cams[0]->GetView();
     _Projection = _cams[0]->GetProj();
 
+    //Skybox;
+    _skybox = new Skybox(_device);
+    XMFLOAT4X4 world;
+    XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+    XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+    _skybox->SetWorld(world);
 
     return S_OK;
 }
@@ -445,8 +451,10 @@ DX11Framework::~DX11Framework()
     if (_crateTexture)_crateTexture->Release();
     if (_crateSpecMap)_crateSpecMap->Release();
 
-    for (int i = 0; i < _cams.size(); i++) { delete _cams[i]; }
+    for (int i = 0; i < _cams.size(); i++) { if (_cams[i] != nullptr) { delete _cams[i]; } }
     _cams.clear();
+
+    if (_skybox != nullptr) { delete _skybox; }
 }
 
 
@@ -474,6 +482,11 @@ void DX11Framework::Update()
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
         _Projection = _cams[_currentCam]->GetProj();
+
+        XMFLOAT4X4 world;
+        XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+        XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+        _skybox->SetWorld(world);
     }
     else if (GetAsyncKeyState(VK_NUMPAD0))
     {
@@ -481,6 +494,11 @@ void DX11Framework::Update()
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
         _Projection = _cams[_currentCam]->GetProj();
+
+        XMFLOAT4X4 world;
+        XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+        XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+        _skybox->SetWorld(world);
     }
 
     //cameraControls
@@ -493,6 +511,12 @@ void DX11Framework::Update()
         _cams[_currentCam]->SetEye(currentPos);
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
+
+        XMFLOAT4X4 world;
+        XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+        XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+        _skybox->SetWorld(world);
+
     }
     if (GetKeyState(0x44) & 0x8000)
     {
@@ -504,6 +528,11 @@ void DX11Framework::Update()
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
         _Projection = _cams[_currentCam]->GetProj();
+
+        XMFLOAT4X4 world;
+        XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+        XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+        _skybox->SetWorld(world);
     }
     if (GetKeyState(0x53) & 0x8000)
     {
@@ -515,6 +544,11 @@ void DX11Framework::Update()
 
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
+
+        XMFLOAT4X4 world;
+        XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+        XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+        _skybox->SetWorld(world);
     }
     if (GetKeyState(0x57) & 0x8000)
     {
@@ -526,8 +560,14 @@ void DX11Framework::Update()
 
         _cbData.cameraPosition = _cams[_currentCam]->GetEye();
         _View = _cams[_currentCam]->GetView();
+
+        XMFLOAT4X4 world;
+        XMFLOAT3 pos = _cams[_currentCam]->GetEye();
+        XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+        _skybox->SetWorld(world);
     }
 
+    //cameraRotation
     if (GetKeyState(0x5a) & 0x8000)
     {
         XMFLOAT3 up = XMFLOAT3(0,1,0);
