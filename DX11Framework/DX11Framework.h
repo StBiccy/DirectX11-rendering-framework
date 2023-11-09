@@ -7,6 +7,7 @@
 #include "OBJLoader.h"
 #include "GameObject.h"
 #include "BaseCamera.h"
+#include "Skybox.h"
 
 //#include <wrl.h>
 
@@ -30,6 +31,7 @@ class DX11Framework
 	ID3D11RasterizerState* _fillState;
 	ID3D11RasterizerState* _wireframeState;
 	ID3D11SamplerState* _bilinearSampleState;
+	ID3D11ShaderResourceView* _skyboxTexture;
 	ID3D11ShaderResourceView* _carTexture;
 	ID3D11ShaderResourceView* _crateTexture;
 	ID3D11ShaderResourceView* _crateSpecMap;
@@ -47,6 +49,7 @@ class DX11Framework
 	HWND _windowHandle;
 
 	GameObject _car;
+	Skybox* _skybox;
 
 	std::vector<BaseCamera*> _cams;
 	byte _currentCam = 0;

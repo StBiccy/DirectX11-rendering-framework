@@ -33,7 +33,7 @@ struct VS_Out
     float2 texCoord : TEXCOOORD;
 };
 
-VS_Out VS_main(float3 Position : POSITION, float3 Normal: NORMAL, float2 TexCoord : TEXCOORD)
+VS_Out VS_main(float3 Position : POSITION, float3 Normal : NORMAL, float2 TexCoord : TEXCOORD)
 {   
     VS_Out output = (VS_Out)0;
 

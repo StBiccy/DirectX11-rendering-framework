@@ -222,7 +222,8 @@ HRESULT DX11Framework::InitShadersAndInputLayout()
 
     hr = _device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &_pixelShader);
 
-
+    vsBlob->Release();
+    psBlob->Release();
 
     return hr;
 }
@@ -404,6 +405,9 @@ HRESULT DX11Framework::InitRunTimeData()
     hr = CreateDDSTextureFromFile(_device, L"Models\\Car\\Car_COLOR.dds", nullptr, &_carTexture);
     if (FAILED(hr)) { return hr; }
 
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\skybox.dds", nullptr, &_skyboxTexture);
+    if (FAILED(hr)) { return hr; }
+
     _car.SetTexture(_carTexture);
 
     //Cameras
@@ -417,11 +421,17 @@ HRESULT DX11Framework::InitRunTimeData()
     _Projection = _cams[0]->GetProj();
 
     //Skybox;
-    _skybox = new Skybox(_device);
+    _skybox = new Skybox(_device, &_windowHandle, _constantBuffer);
+
+    hr = _skybox->Init();
+    if (FAILED(hr)) { return hr; }
+
     XMFLOAT4X4 world;
     XMFLOAT3 pos = _cams[_currentCam]->GetEye();
     XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+
     _skybox->SetWorld(world);
+    _skybox->SetTexture(_skyboxTexture);
 
     return S_OK;
 }
@@ -450,6 +460,10 @@ DX11Framework::~DX11Framework()
 
     if (_crateTexture)_crateTexture->Release();
     if (_crateSpecMap)_crateSpecMap->Release();
+    if (_crateNormMap)_crateNormMap->Release();
+
+    if (_skyboxTexture)_skyboxTexture->Release();
+    if (_carTexture) _carTexture->Release();
 
     for (int i = 0; i < _cams.size(); i++) { if (_cams[i] != nullptr) { delete _cams[i]; } }
     _cams.clear();
@@ -637,6 +651,9 @@ void DX11Framework::Update()
 
 void DX11Framework::Draw()
 {    
+
+    _immediateContext->RSSetState(_fillState);
+
     _cbData.DiffuseLight = _diffuseLight;
     _cbData.DiffuseMaterial = _diffuseMaterial;
     _cbData.LightDir = _lightDir;
@@ -729,6 +746,8 @@ void DX11Framework::Draw()
     //_immediateContext->IASetVertexBuffers(0, 1, &_lineVertexBuffer, &stride, &offset);
     //_immediateContext->Draw(2, 0);
 
+
+    _skybox->Draw(_immediateContext, &_cbData);
 
     //Present Backbuffer to screen
     _swapChain->Present(0, 0);

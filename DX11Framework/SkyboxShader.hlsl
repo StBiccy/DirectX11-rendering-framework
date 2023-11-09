@@ -1,5 +1,5 @@
 TextureCube skybox : register(t0);
-SamplerState bilinierSampler : register(s0);
+SamplerState bilinearSampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
 {
@@ -23,7 +23,7 @@ cbuffer ConstantBuffer : register(b0)
 
 struct SkyboxVS_Out
 {
-    float4 position : POSITION;
+    float4 position : SV_POSITION;
     float3 texCoord : TEXCOORD;
 };
 
@@ -31,9 +31,11 @@ SkyboxVS_Out VS_main(float3 Position : POSITION, float3 Normal : NORMAL, float2 
 {
     SkyboxVS_Out output = (SkyboxVS_Out) 0;
     
+    float4 Pos4 = float4(Position, 1.0f);
+    
+    output.position = mul(Pos4, World);
     output.position = mul(output.position, View);
     output.position = mul(output.position, Projection);
-    output.position = mul(output.position, World);
     
     output.position = output.position.xyww;
     
@@ -44,5 +46,6 @@ SkyboxVS_Out VS_main(float3 Position : POSITION, float3 Normal : NORMAL, float2 
 
 float4 PS_main(SkyboxVS_Out input) : SV_TARGET
 {
-
+   
+    return skybox.Sample(bilinearSampler, input.texCoord);
 }
