@@ -20,7 +20,7 @@ private:
 	ID3D11RasterizerState* _rasterizerSkybox;
 
 	GameObject _cube;
-
+	MeshData _meshData;
 	ID3D11Device* _device;
 	HWND* _windowHandle;
 
@@ -35,7 +35,7 @@ public:
 	void SetTexture(ID3D11ShaderResourceView* texture) { _texture = texture; }
 	void SetWorld(XMFLOAT4X4 world) { _World = world; }
 
-	void Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer* cbData);
+	void Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer& cbData);
 	void Update(float DeltaTime);
 };
 

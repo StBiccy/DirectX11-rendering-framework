@@ -6,7 +6,7 @@ Skybox::Skybox(ID3D11Device* device, HWND* windHand, ID3D11Buffer* constbuff)
     _windowHandle = windHand;
     _constantBuffer = constbuff;
 
-    D3D11_DEPTH_STENCIL_DESC dsDescSkybox;
+    D3D11_DEPTH_STENCIL_DESC dsDescSkybox = {};
     dsDescSkybox.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
     dsDescSkybox.DepthEnable = true;
     dsDescSkybox.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -23,7 +23,7 @@ Skybox::Skybox(ID3D11Device* device, HWND* windHand, ID3D11Buffer* constbuff)
     _device->CreateRasterizerState(&rasterizerDesc, &_rasterizerSkybox);
 
     //cube
-    _cube.SetMeshData(OBJLoader::Load("Models\\\InvertedCube\\\InvertedCube.obj", _device, false));
+    _meshData = OBJLoader::Load("Models\\Models\\Car\\Car.obj", _device, false);
 
 }
 
@@ -94,28 +94,32 @@ HRESULT Skybox::InitShader()
     return hr;
 }
 
-void Skybox::Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer* cbData)
+void Skybox::Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer& cbData)
 {
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 
-    immediateContext->RSSetState(_rasterizerSkybox);
+    //immediateContext->RSSetState(_rasterizerSkybox);
 
-    cbData->World = XMMatrixTranspose(XMLoadFloat4x4(&_World));
+    //cbData->World = XMMatrixTranspose(XMLoadFloat4x4(&_World));
 
     immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &cbData, sizeof(cbData));
     immediateContext->Unmap(_constantBuffer, 0);
 
-    immediateContext->VSSetShader(_vertexShader, nullptr, 0);
-    immediateContext->PSSetShader(_pixelShader, nullptr, 0);
+    //immediateContext->VSSetShader(_vertexShader, nullptr, 0);
+    //immediateContext->PSSetShader(_pixelShader, nullptr, 0);
 
-    immediateContext->OMSetDepthStencilState(_depthStencilSkybox, 0);
-    immediateContext->PSSetShaderResources(0, 0, &_texture);
+    //immediateContext->OMSetDepthStencilState(_depthStencilSkybox, 0);
+    //immediateContext->PSSetShaderResources(0, 1, &_texture);
 
+    immediateContext->IASetVertexBuffers(0, 1, &_meshData.VertexBuffer, &_meshData.VBStride, &_meshData.VBOffset);
+    immediateContext->IASetIndexBuffer(_meshData.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
+    immediateContext->DrawIndexed(_meshData.IndexCount, 0, 0);
 
 }
 
 void Skybox::Update(float DeltaTime)
 {
+
 }

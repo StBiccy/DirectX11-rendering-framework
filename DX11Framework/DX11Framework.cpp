@@ -428,7 +428,7 @@ HRESULT DX11Framework::InitRunTimeData()
 
     XMFLOAT4X4 world;
     XMFLOAT3 pos = _cams[_currentCam]->GetEye();
-    XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
+    XMStoreFloat4x4(&world, XMMatrixIdentity());
 
     _skybox->SetWorld(world);
     _skybox->SetTexture(_skyboxTexture);
@@ -514,6 +514,7 @@ void DX11Framework::Update()
         XMStoreFloat4x4(&world, XMMatrixIdentity() * XMMatrixTranslation(pos.x, pos.y, pos.z));
         _skybox->SetWorld(world);
     }
+
 
     //cameraControls
     if (GetKeyState(0x41) & 0x8000)
@@ -652,7 +653,7 @@ void DX11Framework::Update()
 void DX11Framework::Draw()
 {    
 
-    _immediateContext->RSSetState(_fillState);
+    //_immediateContext->RSSetState(_fillState);
 
     _cbData.DiffuseLight = _diffuseLight;
     _cbData.DiffuseMaterial = _diffuseMaterial;
@@ -747,7 +748,7 @@ void DX11Framework::Draw()
     //_immediateContext->Draw(2, 0);
 
 
-    _skybox->Draw(_immediateContext, &_cbData);
+    _skybox->Draw(_immediateContext, _cbData);
 
     //Present Backbuffer to screen
     _swapChain->Present(0, 0);
