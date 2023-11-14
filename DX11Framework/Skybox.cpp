@@ -1,6 +1,6 @@
 #include "Skybox.h"
 
-Skybox::Skybox(ID3D11Device* device, HWND* windHand, ID3D11Buffer* constbuff)
+Skybox::Skybox(ID3D11Device* device, HWND* windHand, ID3D11Buffer* constbuff, ID3D11ShaderResourceView* texture)
 {
 	_device = device;
     _windowHandle = windHand;
@@ -22,8 +22,9 @@ Skybox::Skybox(ID3D11Device* device, HWND* windHand, ID3D11Buffer* constbuff)
 
     _device->CreateRasterizerState(&rasterizerDesc, &_rasterizerSkybox);
 
-    //cube
-    _meshData = OBJLoader::Load("Models\\Models\\Car\\Car.obj", _device, false);
+    _meshData = OBJLoader::Load("Models\\InvertedCube\\InvertedCube.obj", _device, false);
+
+    _texture = texture;
 
 }
 
@@ -85,8 +86,8 @@ HRESULT Skybox::InitShader()
         return hr;
     }
 
-
     hr = _device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &_pixelShader);
+    if (FAILED(hr)) return hr;
 
     vsBlob->Release();
     psBlob->Release();
@@ -94,24 +95,18 @@ HRESULT Skybox::InitShader()
     return hr;
 }
 
-void Skybox::Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer& cbData)
+void Skybox::Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer& cbData, D3D11_MAPPED_SUBRESOURCE& mappedSubresource)
 {
-    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-
-    //immediateContext->RSSetState(_rasterizerSkybox);
-
-    //cbData->World = XMMatrixTranspose(XMLoadFloat4x4(&_World));
+    immediateContext->VSSetShader(_vertexShader, nullptr, 0);
+    immediateContext->PSSetShader(_pixelShader, nullptr, 0);
 
     immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &cbData, sizeof(cbData));
     immediateContext->Unmap(_constantBuffer, 0);
 
-    //immediateContext->VSSetShader(_vertexShader, nullptr, 0);
-    //immediateContext->PSSetShader(_pixelShader, nullptr, 0);
+   immediateContext->OMSetDepthStencilState(_depthStencilSkybox, 0);
 
-    //immediateContext->OMSetDepthStencilState(_depthStencilSkybox, 0);
-    //immediateContext->PSSetShaderResources(0, 1, &_texture);
-
+    immediateContext->PSSetShaderResources(0, 1, &_texture);
     immediateContext->IASetVertexBuffers(0, 1, &_meshData.VertexBuffer, &_meshData.VBStride, &_meshData.VBOffset);
     immediateContext->IASetIndexBuffer(_meshData.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 

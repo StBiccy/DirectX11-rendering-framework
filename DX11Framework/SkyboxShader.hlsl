@@ -31,9 +31,15 @@ SkyboxVS_Out VS_main(float3 Position : POSITION, float3 Normal : NORMAL, float2 
 {
     SkyboxVS_Out output = (SkyboxVS_Out) 0;
     
+    float4x4 world = float4x4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f
+    );
     float4 Pos4 = float4(Position, 1.0f);
     
-    output.position = mul(Pos4, World);
+    output.position = mul(Pos4, world);
     output.position = mul(output.position, View);
     output.position = mul(output.position, Projection);
     
@@ -43,6 +49,7 @@ SkyboxVS_Out VS_main(float3 Position : POSITION, float3 Normal : NORMAL, float2 
     
     return output;
 }
+
 
 float4 PS_main(SkyboxVS_Out input) : SV_TARGET
 {
