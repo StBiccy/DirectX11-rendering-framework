@@ -399,7 +399,7 @@ HRESULT DX11Framework::InitRunTimeData()
     hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_SPEC.dds", nullptr, &_crateSpecMap);
     if (FAILED(hr)) { return hr; }
 
-    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_NRM.dds", nullptr, &_crateNormMap);s
+    hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_NRM.dds", nullptr, &_crateNormMap);
     if (FAILED(hr)) { return hr; }
 
     hr = CreateDDSTextureFromFile(_device, L"Models\\Car\\Car_COLOR.dds", nullptr, &_carTexture);
