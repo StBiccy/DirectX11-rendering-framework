@@ -374,6 +374,26 @@ HRESULT DX11Framework::InitPipelineVariables()
 
     _immediateContext->PSSetSamplers(0, 1, &_bilinearSampleState);
 
+    //Blend State
+    D3D11_BLEND_DESC blendDesc = {};
+
+    D3D11_RENDER_TARGET_BLEND_DESC rtbd = {};
+    rtbd.BlendEnable = true;
+    rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
+    rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+    rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+    rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+    rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+    rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    blendDesc.AlphaToCoverageEnable = false;
+    blendDesc.RenderTarget[0] = rtbd;
+
+    hr = _device->CreateBlendState(&blendDesc, &_transparency);
+    if (FAILED(hr)) { return hr; }
+
+
     return S_OK;
 }
 
@@ -439,6 +459,7 @@ DX11Framework::~DX11Framework()
     if (_depthStencilBuffer)_depthStencilBuffer->Release();
     if (_depthStencilView)_depthStencilView->Release(); 
     if(_swapChain)_swapChain->Release();
+    if(_transparency)_transparency->Release();
 
     if (_fillState)_fillState->Release();
     if(_wireframeState)_wireframeState->Release();
@@ -478,7 +499,7 @@ void DX11Framework::Update()
     simpleCount += deltaTime;
 
     XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(0,0,2));
-    XMStoreFloat4x4(&_World2, XMMatrixIdentity() * XMMatrixTranslation(5, 0, 0) * XMLoadFloat4x4(&_World));
+    XMStoreFloat4x4(&_World2, XMMatrixIdentity());
     XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
     XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
     
@@ -640,7 +661,8 @@ void DX11Framework::Update()
 void DX11Framework::Draw()
 {    
 
-    //_immediateContext->RSSetState(_fillState);
+    FLOAT blendFactor[4] = { 0.25f,0.25f,0.25f, 1.0f };
+
 
     _cbData.DiffuseLight = _diffuseLight;
     _cbData.DiffuseMaterial = _diffuseMaterial;
@@ -678,19 +700,17 @@ void DX11Framework::Draw()
     _immediateContext->PSSetShaderResources(0, 1, &_carTexture);
 
     //Set object variables and draw
+    _immediateContext->OMSetBlendState(0, 0, 0xffffffff);
 
-    _car.Draw(_immediateContext, &_cbData);
-    _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
-    _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
-
-    MeshData meshdata = *_car.GetMeshData();
-    _immediateContext->DrawIndexed(meshdata.IndexCount, 0, 0);
+    _car.Draw(_immediateContext, &_cbData, mappedSubresource, _vertexShader, _pixelShader);
 
 
     //////
 
     UINT stride = {sizeof(SimpleVertex)};
     UINT offset =  0 ;
+
+    _immediateContext->OMSetBlendState(0, 0, 0xffffffff);
 
 
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World3));
@@ -713,30 +733,27 @@ void DX11Framework::Draw()
     _immediateContext->DrawIndexed(36, 0, 0);
 
     ///////
+    _skybox->Draw(_immediateContext, _cbData, mappedSubresource);
+
+    /////////////
+
 
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
+
+    _immediateContext->VSSetShader(_vertexShader, nullptr, 0);
+    _immediateContext->PSSetShader(_pixelShader, nullptr, 0);
+
+    _immediateContext->PSSetShaderResources(0, 1, &_crateTexture);
     //Write constant buffer data onto GPU
+    _immediateContext->OMSetBlendState(_transparency, blendFactor, 0xffffffff);
     _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
     _immediateContext->Unmap(_constantBuffer, 0);
 
+    _immediateContext->IASetVertexBuffers(0, 1, &_cubeVertexBuffer, &stride, &offset);
+    _immediateContext->IASetIndexBuffer(_cubeIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
     _immediateContext->DrawIndexed(36, 0, 0);
-
-    //////
-    //_cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World4));
-    //_immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
-    //memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
-    //_immediateContext->Unmap(_constantBuffer, 0);
-
-
-    //_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    //_immediateContext->IASetVertexBuffers(0, 1, &_lineVertexBuffer, &stride, &offset);
-    //_immediateContext->Draw(2, 0);
-
-
-    _skybox->Draw(_immediateContext, _cbData, mappedSubresource);
-
     //Present Backbuffer to screen
     _swapChain->Present(0, 0);
 }

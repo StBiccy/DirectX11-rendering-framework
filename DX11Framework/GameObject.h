@@ -23,7 +23,7 @@ public:
 
 	ID3D11ShaderResourceView** GetShaderResource() { return &_texture; }
 	MeshData* GetMeshData() { return &_meshData; }
-	void Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer* cbData)
+	void Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer* cbData, D3D11_MAPPED_SUBRESOURCE& mappedSubresource, ID3D11VertexShader* vertexShader, ID3D11PixelShader* pixelShader)
 	{
 		cbData->hasTex = _hasTexture;
 		cbData->hasSpecMap = _hasSpecMap;
@@ -34,6 +34,11 @@ public:
 
 		immediateContext->IASetVertexBuffers(0, 1, &_meshData.VertexBuffer, &_meshData.VBStride, &_meshData.VBOffset);
 		immediateContext->IASetIndexBuffer(_meshData.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+		immediateContext->VSSetShader(vertexShader, nullptr, 0);
+		immediateContext->PSSetShader(pixelShader, nullptr, 0);
+		
+		immediateContext->DrawIndexed(_meshData.IndexCount, 0, 0);
 	}
 };
 
