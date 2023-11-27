@@ -100,6 +100,10 @@ void Skybox::Draw(ID3D11DeviceContext* immediateContext, ConstantBuffer& cbData,
     immediateContext->VSSetShader(_vertexShader, nullptr, 0);
     immediateContext->PSSetShader(_pixelShader, nullptr, 0);
 
+    cbData.hasTex = 1;
+    cbData.hasNormMap = 0;
+    cbData.hasSpecMap = 0;
+
     immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &cbData, sizeof(cbData));
     immediateContext->Unmap(_constantBuffer, 0);

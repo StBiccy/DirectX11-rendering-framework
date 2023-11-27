@@ -11,8 +11,8 @@ using namespace DirectX;
 
 struct MeshData
 {
-	ID3D11Buffer * VertexBuffer;
-	ID3D11Buffer * IndexBuffer;
+	ID3D11Buffer* VertexBuffer;
+	ID3D11Buffer* IndexBuffer;
 	UINT VBStride;
 	UINT VBOffset;
 	UINT IndexCount;

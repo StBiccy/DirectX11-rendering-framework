@@ -202,6 +202,8 @@ HRESULT DX11Framework::InitShadersAndInputLayout()
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA,   0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
+        { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
     };
 
     hr = _device->CreateInputLayout(inputElementDesc, ARRAYSIZE(inputElementDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &_inputLayout);
@@ -234,16 +236,16 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
 
     SimpleVertex CubeVertexData[] =
     {
-        //Position                     //Normal           
-        { XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT3(-1.00f,  1.00f, -1),  XMFLOAT2(0.0f,1.0f)},
-        { XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT2(1.0f,1.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT3(-1.00f, -1.00f, -1),  XMFLOAT2(0.0f,0.0f)},
-        { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT2(1.0f,0.0f)},
+        //Position                     //Normal                       //UV                  //Tangent        //Bitangent
+        { XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT3(-1.00f,  1.00f, -1), XMFLOAT2(0.0f,1.0f),  XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
+        { XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT3(1.00f,  1.00f, -1),  XMFLOAT2(1.0f,1.0f),  XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
+        { XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT3(-1.00f, -1.00f, -1), XMFLOAT2(0.0f,0.0f),  XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
+        { XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT3(1.00f, -1.00f, -1),  XMFLOAT2(1.0f,0.0f),  XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
 
-        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1),  XMFLOAT2(1.0f,1.0f)},
-        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT2(0.0f,1.0f)},
-        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1),  XMFLOAT2(1.0f,0.0f)},
-        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT2(0.0f,0.0f)},
+        { XMFLOAT3(-1.00f,  1.00f, 1), XMFLOAT3(-1.00f,  1.00f, 1),   XMFLOAT2(1.0f,1.0f), XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
+        { XMFLOAT3(1.00f,  1.00f, 1),  XMFLOAT3(1.00f,  1.00f, 1),    XMFLOAT2(0.0f,1.0f), XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
+        { XMFLOAT3(-1.00f, -1.00f, 1), XMFLOAT3(-1.00f, -1.00f, 1),   XMFLOAT2(1.0f,0.0f), XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
+        { XMFLOAT3(1.00f, -1.00f, 1),  XMFLOAT3(1.00f, -1.00f, 1),    XMFLOAT2(0.0f,0.0f), XMFLOAT3(0,0,0), XMFLOAT3(0,0,0)},
     };
 
     D3D11_BUFFER_DESC cubeVertexBufferDesc = {};
@@ -293,6 +295,7 @@ HRESULT DX11Framework::InitVertexIndexBuffers()
     /////////////
 
     _car.SetMeshData(OBJLoader::Load("Models\\Car\\Car.obj", _device));
+    _tengu.SetMeshData(OBJLoader::Load("Models\\TenguMask\\TenguMask.obj", _device));
 
     //////
 
@@ -360,6 +363,19 @@ HRESULT DX11Framework::InitPipelineVariables()
     _immediateContext->VSSetConstantBuffers(0, 1, &_constantBuffer);
     _immediateContext->PSSetConstantBuffers(0, 1, &_constantBuffer);
 
+    //ligth Buffer
+    D3D11_BUFFER_DESC lightBufferDesc = {};
+    lightBufferDesc.ByteWidth = sizeof(LightBuffer);
+    lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    hr = _device->CreateBuffer(&lightBufferDesc, nullptr, &_lightBuffer);
+    if (FAILED(hr)) { return hr; }
+
+    _immediateContext->VSSetConstantBuffers(1, 1, &_lightBuffer);
+    _immediateContext->PSSetConstantBuffers(1, 1, &_lightBuffer);
+
     //Sampler State
     D3D11_SAMPLER_DESC bilinearSamplerDesc = {};
     bilinearSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -400,17 +416,6 @@ HRESULT DX11Framework::InitPipelineVariables()
 HRESULT DX11Framework::InitRunTimeData()
 {
     HRESULT hr;
-    //Light
-    _diffuseLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-    _diffuseMaterial = XMFLOAT4(0.0f, 0.0f, 0.5f, 1.0f);
-    _lightDir = XMFLOAT3(1.0, 1.0f, -1.0f);
-
-    _ambiantLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-    _ambiantMaterial = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-
-    _specularMaterial = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    _specularLight = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-    _specPower = 10.0f;
 
     //Load Textures;
     hr = CreateDDSTextureFromFile(_device, L"Textures\\Crate_COLOR.dds", nullptr, &_crateTexture);
@@ -428,7 +433,17 @@ HRESULT DX11Framework::InitRunTimeData()
     hr = CreateDDSTextureFromFile(_device, L"Textures\\skybox.dds", nullptr, &_skyboxTexture);
     if (FAILED(hr)) { return hr; }
 
+    hr = CreateDDSTextureFromFile(_device, L"Models\\TenguMask\\mask_Base_Color.dds", nullptr, &_tenguTexture);
+    if (FAILED(hr)) { return hr; }
+
+    hr = CreateDDSTextureFromFile(_device, L"Models\\TenguMask\\Mask_Normal.dds", nullptr, &_tenguNormMap);
+    if (FAILED(hr)) { return hr; }
+
     _car.SetTexture(_carTexture);
+    _tengu.SetTexture(_tenguTexture);
+    _tengu.SetNormalMap(_tenguNormMap);
+   // _tengu.SetSpecularMap(_crateSpecMap);
+
 
     //Cameras
     _cams.push_back(new BaseCamera(XMFLOAT3(0, 0, 0) ,XMFLOAT3(0, 0, 0.0f), XMFLOAT3(0, 0, 1), XMFLOAT3(0, 1, 0), _viewport.Width, _viewport.Height, 0.001f, 100));
@@ -442,7 +457,6 @@ HRESULT DX11Framework::InitRunTimeData()
 
     //Skybox;
     _skybox = new Skybox(_device, &_windowHandle, _constantBuffer, _skyboxTexture);
-
     hr = _skybox->Init();
     if (FAILED(hr)) { return hr; }
 
@@ -466,7 +480,8 @@ DX11Framework::~DX11Framework()
     if(_vertexShader)_vertexShader->Release();
     if(_inputLayout)_inputLayout->Release();
     if(_pixelShader)_pixelShader->Release();
-    if(_constantBuffer)_constantBuffer->Release();
+    if (_constantBuffer)_constantBuffer->Release();
+    if(_lightBuffer)_lightBuffer->Release();
     if(_cubeVertexBuffer)_cubeVertexBuffer->Release();
     if(_cubeIndexBuffer)_cubeIndexBuffer->Release();
     if (_pyramidVertexBuffer)_pyramidVertexBuffer->Release();
@@ -476,8 +491,11 @@ DX11Framework::~DX11Framework()
     if (_crateSpecMap)_crateSpecMap->Release();
     if (_crateNormMap)_crateNormMap->Release();
 
+
     if (_skyboxTexture)_skyboxTexture->Release();
     if (_carTexture) _carTexture->Release();
+    if (_tenguNormMap)_tenguNormMap->Release();
+    if (_tenguTexture)_tenguTexture->Release();
 
     for (int i = 0; i < _cams.size(); i++) { if (_cams[i] != nullptr) { delete _cams[i]; } }
     _cams.clear();
@@ -498,10 +516,11 @@ void DX11Framework::Update()
     static float simpleCount = 0.0f;
     simpleCount += deltaTime;
 
-    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(0,0,2));
+    XMStoreFloat4x4(&_World, XMMatrixIdentity() * XMMatrixTranslation(0,0,2));
     XMStoreFloat4x4(&_World2, XMMatrixIdentity());
-    XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixRotationY(simpleCount) * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
-    XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(0, -2, 0));
+    XMStoreFloat4x4(&_World3, XMMatrixIdentity() * XMMatrixTranslation(2,0, 0) * XMLoadFloat4x4(&_World2));
+    XMStoreFloat4x4(&_World4, XMMatrixIdentity() * XMMatrixTranslation(-10, -2, 0));
+
     
     if (GetForegroundWindow() == _windowHandle)
     {
@@ -663,23 +682,20 @@ void DX11Framework::Update()
 
 void DX11Framework::Draw()
 {    
+    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+
 
     FLOAT blendFactor[4] = { 0.25f,0.25f,0.25f, 1.0f };
 
+    _lbData = parser.Light;
 
-    _cbData.DiffuseLight = _diffuseLight;
-    _cbData.DiffuseMaterial = _diffuseMaterial;
-    _cbData.LightDir = _lightDir;
-    _cbData.AmbiantLight = _ambiantLight;
-    _cbData.AmbiantMaterial = _ambiantMaterial;
-
-    _cbData.specularLight = _specularLight;
-    _cbData.specularMaterial = _specularMaterial;
-    _cbData.specPower = _specPower;
+    _immediateContext->Map(_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+    memcpy(mappedSubresource.pData, &_lbData, sizeof(_lbData));
+    _immediateContext->Unmap(_lightBuffer, 0);
 
     _immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _cbData.hasTex = 1;
-    _cbData.hasSpecMap = 0;
+    _cbData.hasSpecMap = 1;
     _cbData.hasNormMap = 0;
 
     //Present unbinds render target, so rebind and clear at start of each frame
@@ -695,18 +711,21 @@ void DX11Framework::Draw()
     _cbData.Projection = XMMatrixTranspose(XMLoadFloat4x4(&_Projection));
 
     //Write constant buffer data onto GPU
-    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
     _immediateContext->Map(_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
     memcpy(mappedSubresource.pData, &_cbData, sizeof(_cbData));
     _immediateContext->Unmap(_constantBuffer, 0);
 
-    _immediateContext->PSSetShaderResources(0, 1, &_carTexture);
-
     //Set object variables and draw
     _immediateContext->OMSetBlendState(0, 0, 0xffffffff);
 
-    _car.Draw(_immediateContext, &_cbData, mappedSubresource, _vertexShader, _pixelShader);
 
+    _car.Draw(_immediateContext, _constantBuffer, _cbData, mappedSubresource, _vertexShader, _pixelShader);
+
+
+    //Set object variables and draw
+    _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World4));
+
+    _tengu.Draw(_immediateContext, _constantBuffer, _cbData, mappedSubresource, _vertexShader, _pixelShader);
 
     //////
 
@@ -719,8 +738,9 @@ void DX11Framework::Draw()
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World3));
 
     //Write constant buffer data onto GPU
+    _cbData.hasTex = 1;
     _cbData.hasSpecMap = 1;
-    _cbData.hasNormMap = 1;
+    _cbData.hasNormMap = 0;
     _immediateContext->PSSetShaderResources(0, 1, &_crateTexture);
     _immediateContext->PSSetShaderResources(1, 1, &_crateSpecMap);
     _immediateContext->PSSetShaderResources(2, 1, &_crateNormMap);
@@ -740,7 +760,9 @@ void DX11Framework::Draw()
 
     /////////////
 
-
+    _cbData.hasTex = 1;
+    _cbData.hasSpecMap = 1;
+    _cbData.hasNormMap = 0;
     _cbData.World = XMMatrixTranspose(XMLoadFloat4x4(&_World2));
 
     _immediateContext->VSSetShader(_vertexShader, nullptr, 0);

@@ -53,6 +53,9 @@
     <None Include="SkyboxShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="JSON\LightData.json">
+      <Filter>JSON</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DDSTextureLoader.h">

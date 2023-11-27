@@ -1,0 +1,45 @@
+{
+  "LightData": 
+  [
+    {
+      "DiffuseLightR": 0.5,
+      "DiffuseLightG": 0.5,
+      "DiffuseLightB": 0.5,
+      "DiffuseLightA": 1.0,
+
+      "DiffuseMaterialR": 0.0,
+      "DiffuseMaterialG": 0.0,
+      "DiffuseMaterialB": 0.5,
+      "DiffuseMaterialA": 1.0,
+
+      "AmbiantLightR": 0.1,
+      "AmbiantLightG": 0.1,
+      "AmbiantLightB": 0.1,
+      "AmbiantLightA": 1.0,
+
+      "AmbiantMaterialR": 1.0,
+      "AmbiantMaterialG": 1.0,
+      "AmbiantMaterialB": 1.0,
+      "AmbiantMaterialA": 1.0,
+
+      "SpecularLightR": 1.0,
+      "SpecularLightG": 1.0,
+      "SpecularLightB": 1.0,
+      "SpecularLightA": 1.0,
+
+      "SpecularMaterialR": 0.8,
+      "SpecularMaterialG": 0.8,
+      "SpecularMaterialB": 0.8,
+      "SpecularMaterialA": 1.0,
+
+      "SpecularPower": 10,
+
+      "LightDirectionX":0.0,
+      "LightDirectionY":1.0,
+      "LightDirectionZ":0.0
+
+
+    }
+  ],
+  "version": "1.1"
+}

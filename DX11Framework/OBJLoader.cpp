@@ -231,6 +231,71 @@ MeshData OBJLoader::Load(const char* filename, ID3D11Device* _pd3dDevice, bool i
 				indicesArray[i] = meshIndices[i];
 			}
 
+			USHORT k = 3;
+			unsigned short* calledVert = new unsigned short[meshVertices.size()];
+
+			for (unsigned int i = 0; i < numMeshIndices; i += k)
+			{
+				XMFLOAT3 edge1;
+				XMStoreFloat3(&edge1, XMLoadFloat3(&finalVerts[indicesArray[i + 1]].Position) - XMLoadFloat3(&finalVerts[indicesArray[i]].Position));
+				XMFLOAT2 deltaUV1;
+				XMStoreFloat2(&deltaUV1, XMLoadFloat2(&finalVerts[indicesArray[i + 1]].TexCoord) - XMLoadFloat2(&finalVerts[indicesArray[i]].TexCoord));
+				XMFLOAT3 edge2;
+				XMStoreFloat3(&edge2, XMLoadFloat3(&finalVerts[indicesArray[i + 2]].Position) - XMLoadFloat3(&finalVerts[indicesArray[i]].Position));
+				XMFLOAT2 deltaUV2;
+				XMStoreFloat2(&deltaUV2, XMLoadFloat2(&finalVerts[indicesArray[i + 2]].TexCoord) - XMLoadFloat2(&finalVerts[indicesArray[i]].TexCoord));
+
+				float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+				XMFLOAT3 tangent;
+				tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+				tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+				tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+
+				XMFLOAT3 Bitangent;
+				Bitangent.x = f * (deltaUV2.x * edge1.x - deltaUV1.x * edge2.x);
+				Bitangent.y = f * (deltaUV2.x * edge1.y - deltaUV1.x * edge2.y);
+				Bitangent.z = f * (deltaUV2.x * edge1.z - deltaUV1.x * edge2.z);
+
+				if (&finalVerts[indicesArray[i]] == nullptr)
+				{
+					finalVerts[indicesArray[i]].Tangent = tangent;
+					calledVert[indicesArray[i]] = 1;
+				}
+				else
+				{
+					XMStoreFloat3(&finalVerts[indicesArray[i]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i]].Tangent) + XMLoadFloat3(&tangent));
+					calledVert[indicesArray[i]]++;
+				}
+
+				if (&finalVerts[indicesArray[i + 1]] == nullptr)
+				{
+					finalVerts[indicesArray[i + 1]].Tangent = tangent;
+					calledVert[indicesArray[i + 1]] = 1;
+				}
+				else
+				{
+					XMStoreFloat3(&finalVerts[indicesArray[i + 1]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i + 1]].Tangent) + XMLoadFloat3(&tangent));
+					calledVert[indicesArray[i + 1]]++;
+				}	
+
+				if (&finalVerts[indicesArray[i + 2]] == nullptr)
+				{
+					finalVerts[indicesArray[i + 2]].Tangent = tangent;
+					calledVert[indicesArray[i + 2]] = 1;
+				}
+				else
+				{
+					XMStoreFloat3(&finalVerts[indicesArray[i + 2]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i + 2]].Tangent) + XMLoadFloat3(&tangent));
+					calledVert[indicesArray[i + 2]]++;
+				}
+			}
+
+			for (unsigned int i = 0; i < meshVertices.size(); i++)
+			{
+				XMStoreFloat3(&finalVerts[indicesArray[i]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i]].Tangent) / calledVert[indicesArray[i]]);
+			}
+
 			//Output data into binary file, the next time you run this function, the binary file will exist and will load that instead which is much quicker than parsing into vectors
 			std::ofstream outbin(binaryFilename.c_str(), std::ios::out | std::ios::binary);
 			outbin.write((char*)&numMeshVertices, sizeof(unsigned int));
@@ -255,6 +320,7 @@ MeshData OBJLoader::Load(const char* filename, ID3D11Device* _pd3dDevice, bool i
 			meshData.IndexBuffer = indexBuffer;
 
 			//This data has now been sent over to the GPU so we can delete this CPU-side stuff
+			delete[] calledVert;
 			delete [] indicesArray;
 			delete [] finalVerts;
 
