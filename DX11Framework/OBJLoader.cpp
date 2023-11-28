@@ -237,13 +237,13 @@ MeshData OBJLoader::Load(const char* filename, ID3D11Device* _pd3dDevice, bool i
 			for (unsigned int i = 0; i < numMeshIndices; i += k)
 			{
 				XMFLOAT3 edge1;
-				XMStoreFloat3(&edge1, XMLoadFloat3(&finalVerts[indicesArray[i + 1]].Position) - XMLoadFloat3(&finalVerts[indicesArray[i]].Position));
+				XMStoreFloat3(&edge1, XMLoadFloat3(&finalVerts[meshIndices[i + 1]].Position) - XMLoadFloat3(&finalVerts[meshIndices[i]].Position));
 				XMFLOAT2 deltaUV1;
-				XMStoreFloat2(&deltaUV1, XMLoadFloat2(&finalVerts[indicesArray[i + 1]].TexCoord) - XMLoadFloat2(&finalVerts[indicesArray[i]].TexCoord));
+				XMStoreFloat2(&deltaUV1, XMLoadFloat2(&finalVerts[meshIndices[i + 1]].TexCoord) - XMLoadFloat2(&finalVerts[meshIndices[i]].TexCoord));
 				XMFLOAT3 edge2;
-				XMStoreFloat3(&edge2, XMLoadFloat3(&finalVerts[indicesArray[i + 2]].Position) - XMLoadFloat3(&finalVerts[indicesArray[i]].Position));
+				XMStoreFloat3(&edge2, XMLoadFloat3(&finalVerts[meshIndices[i + 2]].Position) - XMLoadFloat3(&finalVerts[meshIndices[i]].Position));
 				XMFLOAT2 deltaUV2;
-				XMStoreFloat2(&deltaUV2, XMLoadFloat2(&finalVerts[indicesArray[i + 2]].TexCoord) - XMLoadFloat2(&finalVerts[indicesArray[i]].TexCoord));
+				XMStoreFloat2(&deltaUV2, XMLoadFloat2(&finalVerts[meshIndices[i + 2]].TexCoord) - XMLoadFloat2(&finalVerts[meshIndices[i]].TexCoord));
 
 				float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
@@ -257,43 +257,25 @@ MeshData OBJLoader::Load(const char* filename, ID3D11Device* _pd3dDevice, bool i
 				Bitangent.y = f * (deltaUV2.x * edge1.y - deltaUV1.x * edge2.y);
 				Bitangent.z = f * (deltaUV2.x * edge1.z - deltaUV1.x * edge2.z);
 
-				if (&finalVerts[indicesArray[i]] == nullptr)
-				{
-					finalVerts[indicesArray[i]].Tangent = tangent;
-					calledVert[indicesArray[i]] = 1;
-				}
-				else
-				{
-					XMStoreFloat3(&finalVerts[indicesArray[i]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i]].Tangent) + XMLoadFloat3(&tangent));
-					calledVert[indicesArray[i]]++;
-				}
 
-				if (&finalVerts[indicesArray[i + 1]] == nullptr)
-				{
-					finalVerts[indicesArray[i + 1]].Tangent = tangent;
-					calledVert[indicesArray[i + 1]] = 1;
-				}
-				else
-				{
-					XMStoreFloat3(&finalVerts[indicesArray[i + 1]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i + 1]].Tangent) + XMLoadFloat3(&tangent));
-					calledVert[indicesArray[i + 1]]++;
-				}	
+				XMStoreFloat3(&finalVerts[indicesArray[i]].Tangent, XMLoadFloat3(&finalVerts[meshIndices[i]].Tangent) + XMLoadFloat3(&tangent));
+				calledVert[meshIndices[i]]++;
 
-				if (&finalVerts[indicesArray[i + 2]] == nullptr)
-				{
-					finalVerts[indicesArray[i + 2]].Tangent = tangent;
-					calledVert[indicesArray[i + 2]] = 1;
-				}
-				else
-				{
-					XMStoreFloat3(&finalVerts[indicesArray[i + 2]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i + 2]].Tangent) + XMLoadFloat3(&tangent));
-					calledVert[indicesArray[i + 2]]++;
-				}
+
+
+				XMStoreFloat3(&finalVerts[indicesArray[i + 1]].Tangent, XMLoadFloat3(&finalVerts[meshIndices[i + 1]].Tangent) + XMLoadFloat3(&tangent));
+				calledVert[meshIndices[i + 1]]++;
+
+
+
+				XMStoreFloat3(&finalVerts[indicesArray[i + 2]].Tangent, XMLoadFloat3(&finalVerts[meshIndices[i + 2]].Tangent) + XMLoadFloat3(&tangent));
+				calledVert[meshIndices[i + 2]]++;
+
 			}
 
 			for (unsigned int i = 0; i < meshVertices.size(); i++)
 			{
-				XMStoreFloat3(&finalVerts[indicesArray[i]].Tangent, XMLoadFloat3(&finalVerts[indicesArray[i]].Tangent) / calledVert[indicesArray[i]]);
+				XMStoreFloat3(&finalVerts[meshIndices[i]].Tangent, XMLoadFloat3(&finalVerts[meshIndices[i]].Tangent) / calledVert[meshIndices[i]]);
 			}
 
 			//Output data into binary file, the next time you run this function, the binary file will exist and will load that instead which is much quicker than parsing into vectors
