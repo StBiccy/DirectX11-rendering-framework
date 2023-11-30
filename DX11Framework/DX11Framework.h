@@ -7,7 +7,7 @@
 #include "Structures.h"
 
 #include "GameObject.h"
-#include "BaseCamera.h"
+#include "MoveableCamera.h"
 #include "Skybox.h"
 //#include <wrl.h>
 
@@ -61,7 +61,7 @@ class DX11Framework
 	GameObject _car;
 	GameObject _tengu;
 	Skybox* _skybox;
-	std::vector<BaseCamera*> _cams;
+	std::vector<MoveableCamera*> _cams;
 	byte _currentCam = 0;
 
 #pragma region Matracies
@@ -82,7 +82,7 @@ class DX11Framework
 	ID3D11Texture2D* _depthStencilBuffer;
 	ID3D11DepthStencilView* _depthStencilView;
 
-	float _speed = 10;
+	
 
 public:
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);

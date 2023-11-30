@@ -137,6 +137,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="JSONParser.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MoveableCamera.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Skybox.cpp" />
   </ItemGroup>
@@ -161,6 +162,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="JSONParser.h" />
     <ClInclude Include="JSON\json.hpp" />
+    <ClInclude Include="MoveableCamera.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Structures.h" />

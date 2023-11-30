@@ -45,6 +45,9 @@
     <ClCompile Include="JSONParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MoveableCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleShaders.hlsl">
@@ -84,6 +87,9 @@
     </ClInclude>
     <ClInclude Include="JSON\json.hpp">
       <Filter>JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveableCamera.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
